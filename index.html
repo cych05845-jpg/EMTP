@@ -136,7 +136,7 @@
       <div class="row2">
         <div><label class="fld">日期</label><input id="f-date" type="date"></div>
         <div><label class="fld">時段</label>
-          <select id="f-slot"><option>E班晨間（6小時）</option><option>D班結束後（4小時）</option><option>全天候</option><option>其他</option></select>
+          <select id="f-slot"><option>白班 08:00–14:00</option><option>晚班 16:00–22:00</option><option>全天候</option><option>其他</option></select>
         </div>
       </div>
       <label class="fld">當日輪值崗位（可複選）</label>
@@ -151,16 +151,20 @@
 
     <div class="card">
       <h2>交班與評語</h2>
-      <div class="chips" style="margin-bottom:8px">
-        <label class="chip" id="chip-none"><input type="checkbox" id="f-none" onchange="toggleNoNote(this)"><span>無特殊建議</span></label>
-      </div>
       <label class="fld">交班事項（給下一位帶領老師）</label>
-      <textarea id="f-handover" placeholder="不想多寫的話，填這欄就好"></textarea>
+      <div class="chips" id="chips-handover"></div>
+      <textarea id="f-handover" placeholder="點上方標籤即可；要補充再打字"></textarea>
       <button type="button" class="more-btn" id="more-btn" onclick="toggleMore()">＋ 給學員的回饋／其他（選填）</button>
       <div id="more-fields" class="hidden">
-        <label class="fld">良好表現（學員看得到）</label><textarea id="f-good"></textarea>
-        <label class="fld">待加強／下次重點（學員看得到）</label><textarea id="f-improve"></textarea>
-        <label class="fld">特殊事件／病安提醒（學員看不到）</label><textarea id="f-event"></textarea>
+        <label class="fld">良好表現（學員看得到）</label>
+        <div class="chips" id="chips-good"></div>
+        <textarea id="f-good"></textarea>
+        <label class="fld">待加強／下次重點（學員看得到）</label>
+        <div class="chips" id="chips-improve"></div>
+        <textarea id="f-improve"></textarea>
+        <label class="fld">特殊事件／病安提醒（學員看不到）</label>
+        <div class="chips" id="chips-event"></div>
+        <textarea id="f-event"></textarea>
       </div>
     </div>
     <button class="btn" onclick="submitRecord()">送出紀錄</button>
@@ -209,6 +213,13 @@ const ITEMS = [
   {id:'h3', unit:'特殊情境與安全', name:'病人搬運與院內轉送', type:'op'}
 ];
 const STATIONS = ['檢傷站','急救／重症區','注射治療區','監測／心電圖','觀察區'];
+// 交班/評語的制式標籤（點選即填入對應欄位；要自訂仍可打字）
+const PRESETS = {
+  'f-handover': ['無特殊建議','進度正常','表現良好','需加強(見待加強)','請延續觀察','已提醒病安'],
+  'f-good':     ['主動積極','操作確實','評估完整','溝通清楚','學習態度佳','病安意識佳'],
+  'f-improve':  ['技術熟練度','評估完整性','用藥/劑量概念','團隊溝通','主動性','時間掌握'],
+  'f-event':    ['無','針扎/暴露','用藥疑慮','跌倒','衝突/暴力','需通報事件']
+};
 const UNITS = [];
 ITEMS.forEach(function(it){ if(UNITS.indexOf(it.unit)<0) UNITS.push(it.unit); });
 function targetOf(type){ return type==='op' ? 4 : 3; }  // 操作型目標 P4，其餘 P3
@@ -305,6 +316,28 @@ function initForm(){
       box.appendChild(row);
     });
   });
+  buildPresets();
+}
+// 建立制式標籤
+function buildPresets(){
+  Object.keys(PRESETS).forEach(function(target){
+    const box=document.getElementById('chips-'+target.slice(2)); // f-handover -> chips-handover
+    box.innerHTML='';
+    PRESETS[target].forEach(function(p){
+      const c=document.createElement('span'); c.className='chip'; c.textContent=p;
+      c.onclick=function(){ chipInto(target, p, c); };
+      box.appendChild(c);
+    });
+  });
+}
+// 點標籤 → 切換填入/移除（以「、」分隔），與文字框同步
+function chipInto(targetId, phrase, el){
+  const t=document.getElementById(targetId);
+  let parts = t.value ? t.value.split('、').filter(Boolean) : [];
+  const i = parts.indexOf(phrase);
+  if(i>=0){ parts.splice(i,1); el.classList.remove('on'); }
+  else { parts.push(phrase); el.classList.add('on'); }
+  t.value = parts.join('、');
 }
 
 /* ===== 學員名單 ===== */
@@ -343,17 +376,9 @@ function resetForm(){
   ['f-good','f-improve','f-event','f-handover'].forEach(function(id){document.getElementById(id).value='';});
   document.querySelectorAll('#f-stations input:checked').forEach(function(c){c.checked=false;c.closest('.chip').classList.remove('on');});
   ITEMS.forEach(function(it){ document.getElementById('it_'+it.id).value='0'; });
-  const none=document.getElementById('f-none');
-  if(none){ none.checked=false; none.closest('.chip').classList.remove('on'); }
-  document.getElementById('f-handover').removeAttribute('disabled');
+  document.querySelectorAll('#chips-handover .chip.on, #chips-good .chip.on, #chips-improve .chip.on, #chips-event .chip.on').forEach(function(c){ c.classList.remove('on'); });
   const m=document.getElementById('more-fields');
   if(m){ m.classList.add('hidden'); document.getElementById('more-btn').textContent='＋ 給學員的回饋／其他（選填）'; }
-}
-function toggleNoNote(cb){
-  const h=document.getElementById('f-handover');
-  if(cb.checked){ h.value='無特殊建議'; h.setAttribute('disabled','disabled'); }
-  else { if(h.value==='無特殊建議') h.value=''; h.removeAttribute('disabled'); }
-  cb.closest('.chip').classList.toggle('on', cb.checked);
 }
 function toggleMore(){
   const m=document.getElementById('more-fields'), b=document.getElementById('more-btn');
