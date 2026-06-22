@@ -386,8 +386,8 @@ async function loadStudent(){
 function renderDashboard(r, opts){
   opts=opts||{}; const box=document.getElementById(opts.container||'q-result');
   const display=opts.name||r.name||'';
-  if(!r.records || !r.records.length){ box.innerHTML='<div class="card">'+display+' 目前尚無實習紀錄。</div>'; return; }
   const att=r.attainment||{};
+  const recList=r.records||[];
   let totalDone=0; const total=ITEMS.length; const pending=[];
   let unitsHtml='';
   UNITS.forEach(function(u){
@@ -407,21 +407,28 @@ function renderDashboard(r, opts){
       '<div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+rows+'</div>';
   });
   const opct=Math.round(totalDone/total*100);
+  const headHint = recList.length
+    ? (pending.length ? '尚未達標：'+pending.join('、') : '全部達標 🎉')
+    : '老師還沒填寫紀錄。下面是你這次實習的 18 項學習目標與目標等級（P1 模擬 → P5 多次獨立），完成後會逐項變綠。';
   const head='<div class="card"><h2>'+display+'　整體達成</h2><div class="big">'+totalDone+' / '+total+'</div>'+
     '<div class="pbar big"><div class="pfill" style="width:'+opct+'%"></div></div>'+
-    (pending.length?'<div class="hint" style="margin-top:10px">尚未達標：'+pending.join('、')+'</div>':'<div class="hint" style="margin-top:10px">全部達標 🎉</div>')+'</div>';
+    '<div class="hint" style="margin-top:10px">'+headHint+'</div></div>';
   const isTeacher = (opts.viewer === 'teacher');
   let recs='';
-  r.records.slice().reverse().forEach(function(rec){
-    const done=ITEMS.filter(function(it){return rec.items[it.id]>0;}).map(function(it){return it.name.replace(' ⚠️','')+'(P'+rec.items[it.id]+')';}).join('、')||'—';
-    recs+='<div class="rec"><div class="meta">'+fmtDate(rec.date)+'・'+rec.slot+'・'+rec.teacher+' 老師'+(rec.stations?'・'+rec.stations:'')+'</div>'+
-      '<div>'+done+'</div>'+
-      (rec.good?'<div><b>良好</b>：'+esc(rec.good)+'</div>':'')+
-      (rec.improve?'<div><b>待加強</b>：'+esc(rec.improve)+'</div>':'')+
-      ((isTeacher&&rec.event)?'<div><b>事件</b>：'+esc(rec.event)+'</div>':'')+
-      ((isTeacher&&rec.handover)?'<div><b>交班</b>：'+esc(rec.handover)+'</div>':'')+'</div>';
-  });
-  box.innerHTML=head+unitsHtml+'<div class="card"><h2>歷次紀錄（'+r.records.length+' 筆）</h2>'+recs+'</div>';
+  if(recList.length){
+    recList.slice().reverse().forEach(function(rec){
+      const done=ITEMS.filter(function(it){return rec.items[it.id]>0;}).map(function(it){return it.name.replace(' ⚠️','')+'(P'+rec.items[it.id]+')';}).join('、')||'—';
+      recs+='<div class="rec"><div class="meta">'+fmtDate(rec.date)+'・'+rec.slot+'・'+rec.teacher+' 老師'+(rec.stations?'・'+rec.stations:'')+'</div>'+
+        '<div>'+done+'</div>'+
+        (rec.good?'<div><b>良好</b>：'+esc(rec.good)+'</div>':'')+
+        (rec.improve?'<div><b>待加強</b>：'+esc(rec.improve)+'</div>':'')+
+        ((isTeacher&&rec.event)?'<div><b>事件</b>：'+esc(rec.event)+'</div>':'')+
+        ((isTeacher&&rec.handover)?'<div><b>交班</b>：'+esc(rec.handover)+'</div>':'')+'</div>';
+    });
+  } else {
+    recs='<div class="hint">尚無紀錄，老師填寫後會出現在這裡。</div>';
+  }
+  box.innerHTML=head+unitsHtml+'<div class="card"><h2>歷次紀錄（'+recList.length+' 筆）</h2>'+recs+'</div>';
 }
 
 /* ===== 管理面板（admin）===== */
