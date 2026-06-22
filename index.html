@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EMTP 醫院實習紀錄</title>
+<style>
+  :root{
+    --bg:#eef2f3; --surface:#fff; --ink:#16242b; --muted:#5f7178; --line:#d8e2e5;
+    --teal:#0f6e73; --teal-d:#0a565a; --teal-soft:#e3f0f0;
+    --green:#1f8a55; --green-soft:#e6f4ec; --amber:#c98a1e; --amber-soft:#fbf2dd;
+    --red:#b14a3a; --red-soft:#f6e7e3; --shadow:0 1px 3px rgba(16,40,48,.08),0 1px 2px rgba(16,40,48,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",system-ui,sans-serif;
+    font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+  .wrap{max-width:700px;margin:0 auto;padding:0 14px 60px}
+  header.top{position:sticky;top:0;z-index:20;background:var(--teal);color:#fff;
+    margin:0 -14px 16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+  header.top h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.5px}
+  header.top .who{font-size:13px;opacity:.95}
+  .tabs{display:flex;gap:8px;margin:0 0 16px}
+  .tabs button{flex:1;padding:11px;border:1px solid var(--line);background:var(--surface);
+    border-radius:11px;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer}
+  .tabs button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .seg{display:flex;gap:8px;margin:0 0 14px}
+  .seg button{flex:1;padding:10px;border:1px solid var(--line);background:#fff;border-radius:10px;
+    font-size:15px;font-weight:600;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .card h2{font-size:15px;margin:0 0 12px;color:var(--teal-d);font-weight:700;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  label.fld{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px;font-weight:600}
+  input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:16px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+  textarea{min-height:60px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;cursor:pointer;user-select:none;background:#fff}
+  .chip input{width:auto;margin:0}
+  .chip.on{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-d);font-weight:600}
+  /* 填寫：項目分組 + P 等級 */
+  .unit-head{font-size:13px;font-weight:700;color:var(--teal-d);background:var(--teal-soft);
+    border-radius:8px;padding:6px 10px;margin:14px 0 8px}
+  .unit-head:first-child{margin-top:0}
+  .item-row{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .item-row:last-child{border-bottom:0}
+  .iname{font-size:14px;line-height:1.4}
+  .sel{padding:9px 8px;font-size:14px}
+  .btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;background:var(--teal);color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:var(--shadow)}
+  .btn:active{background:var(--teal-d)}
+  .btn.ghost{background:#fff;color:var(--teal-d);border:1px solid var(--teal)}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#16242b;color:#fff;padding:12px 20px;border-radius:30px;font-size:14px;z-index:50;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
+  /* 儀表板 */
+  .big{font-size:30px;font-weight:800;color:var(--teal-d);letter-spacing:1px}
+  .pbar{height:9px;background:#e7eef0;border-radius:6px;overflow:hidden;margin-top:8px}
+  .pbar.big{height:12px}
+  .pfill{height:100%;background:var(--teal);border-radius:6px;transition:width .4s}
+  .unit-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+  .ucount{font-size:14px;font-weight:700;color:var(--teal-d)}
+  .item-row2{display:grid;grid-template-columns:14px 1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+  .item-row2:last-child{border-bottom:0}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.g{background:var(--green)} .dot.y{background:var(--amber)} .dot.r{background:#c7d0d3}
+  .iname2{line-height:1.35}
+  .lvl{font-size:12px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap}
+  .lvl.g{background:var(--green-soft);color:var(--green)} .lvl.y{background:var(--amber-soft);color:var(--amber)} .lvl.r{background:#eef2f3;color:#9aa9ae;font-weight:500}
+  .tgt{font-size:11.5px;color:var(--muted);white-space:nowrap}
+  .rec{border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px;font-size:13px}
+  .rec .meta{color:var(--muted);font-size:12.5px;margin-bottom:5px}
+  .rec b{color:var(--teal-d)}
+  .login-box{max-width:380px;margin:12vh auto 0;padding:0 18px}
+  .login-box .logo{text-align:center;margin-bottom:18px}
+  .login-box .logo .t{font-size:21px;font-weight:800;color:var(--teal-d)}
+  .login-box .logo .s{font-size:13px;color:var(--muted);margin-top:3px}
+  .hidden{display:none!important}
+  .err{color:var(--red);font-size:13px;margin-top:8px;min-height:18px}
+</style>
+</head>
+<body>
+
+<!-- 登入 -->
+<div id="login" class="login-box">
+  <div class="logo"><div class="t">EMTP 醫院實習紀錄</div><div class="s">嘉義基督教醫院　急診</div></div>
+  <div class="card">
+    <div class="seg">
+      <button id="role-teacher" class="on" onclick="setRole('teacher')">老師</button>
+      <button id="role-student" onclick="setRole('student')">學員</button>
+    </div>
+    <label class="fld" id="lg-acc-label">員工編號</label>
+    <input id="lg-acc" placeholder="輸入你的員工編號" autocomplete="off">
+    <label class="fld">PIN 碼</label>
+    <input id="lg-pin" type="password" placeholder="4–6 位數字" autocomplete="off" inputmode="numeric">
+    <div class="err" id="lg-err"></div>
+    <button class="btn" style="margin-top:6px" onclick="doLogin()">登入</button>
+    <div class="hint">PIN 由護理長／帶領老師在名單上設定。忘記或要修改，請洽他們調整名單。</div>
+  </div>
+</div>
+
+<!-- 主畫面 -->
+<div id="app" class="wrap hidden">
+  <header class="top">
+    <h1>EMTP 實習紀錄</h1>
+    <span class="who"><span id="who"></span> · <a onclick="logout()" style="color:#fff;text-decoration:underline;cursor:pointer">登出</a></span>
+  </header>
+
+  <div class="tabs">
+    <button id="tab-fill" class="on" onclick="switchTab('fill')">填寫紀錄</button>
+    <button id="tab-query" onclick="switchTab('query')">查詢學員</button>
+  </div>
+
+  <section id="view-fill">
+    <div class="card">
+      <h2>基本資料</h2>
+      <label class="fld">學員</label>
+      <select id="f-student"><option value="">載入中…</option></select>
+      <div class="row2">
+        <div><label class="fld">日期</label><input id="f-date" type="date"></div>
+        <div><label class="fld">時段</label>
+          <select id="f-slot"><option>E班晨間（6小時）</option><option>D班結束後（4小時）</option><option>全天候</option><option>其他</option></select>
+        </div>
+      </div>
+      <label class="fld">當日輪值崗位（可複選）</label>
+      <div class="chips" id="f-stations"></div>
+    </div>
+
+    <div class="card">
+      <h2>能力項目（點選本次達到的等級）</h2>
+      <div class="hint" style="margin:0 0 10px">P1 模擬・P2 觀摩・P3 指導下・P4 獨立・P5 多次獨立；未進行請留「—」。</div>
+      <div id="f-items"></div>
+    </div>
+
+    <div class="card">
+      <h2>評語與交班</h2>
+      <label class="fld">良好表現</label><textarea id="f-good"></textarea>
+      <label class="fld">待加強／下次重點</label><textarea id="f-improve"></textarea>
+      <label class="fld">特殊事件／病安提醒</label><textarea id="f-event"></textarea>
+      <label class="fld">交班事項（給下一位帶領老師）</label><textarea id="f-handover"></textarea>
+    </div>
+    <button class="btn" onclick="submitRecord()">送出紀錄</button>
+  </section>
+
+  <section id="view-query" class="hidden">
+    <div class="card">
+      <h2>選擇學員</h2>
+      <select id="q-student"><option value="">載入中…</option></select>
+      <button class="btn ghost" style="margin-top:12px" onclick="loadStudent()">查詢</button>
+    </div>
+    <div id="q-result"></div>
+  </section>
+
+  <section id="view-self" class="hidden"><div id="self-result"></div></section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 設定 ===== */
+const API = 'https://script.google.com/macros/s/AKfycbzBQATd4Bi_h14KZ1B4TG1VDQnfyNLU1Vc13LK8R0J0SiS6EUoXNswAXCqBwopJGn7T/exec';
+
+// 護理 8 單元 / 18 項目（id 與順序需與 Code.gs 的 ITEMS 一致）
+// type: op=操作型(目標P4)  read=判讀型(P3)  know=認識型(P3)  adv=⚠️進階段(P3)
+const ITEMS = [
+  {id:'a1', unit:'病患評估與檢傷', name:'初評與檢傷（意識/GCS、病史、檢傷分級）', type:'op'},
+  {id:'a2', unit:'病患評估與檢傷', name:'理學辨識（呼吸音、灌流/發紺）', type:'read'},
+  {id:'b1', unit:'基礎監測與量測', name:'生命徵象與血糖測量', type:'op'},
+  {id:'b2', unit:'基礎監測與量測', name:'監測儀器操作（心電監測、監視器、輸液幫浦）', type:'op'},
+  {id:'c1', unit:'無菌與感染防護', name:'無菌技術與感染防護（含針扎預防）', type:'op'},
+  {id:'d1', unit:'氧氣與呼吸道照護', name:'氧氣給予與給氧後評估', type:'op'},
+  {id:'d2', unit:'氧氣與呼吸道照護', name:'痰液抽吸（一般/插管病患）', type:'op'},
+  {id:'d3', unit:'氧氣與呼吸道照護', name:'氣道器械認識與插管後固定協助 ⚠️', type:'adv'},
+  {id:'e1', unit:'循環通路與用藥', name:'靜脈管路建立（IV）', type:'op'},
+  {id:'e2', unit:'循環通路與用藥', name:'急救藥物與輸液認識', type:'know'},
+  {id:'f1', unit:'心律與電擊', name:'心律監測判讀（基礎）', type:'read'},
+  {id:'f2', unit:'心律與電擊', name:'經皮節律器／去顫器操作 ⚠️', type:'adv'},
+  {id:'g1', unit:'創傷處置', name:'出血控制與肢體固定', type:'op'},
+  {id:'g2', unit:'創傷處置', name:'傷口清洗消毒包紮、燒燙傷初步處理', type:'op'},
+  {id:'g3', unit:'創傷處置', name:'脊椎/頸椎固定與創傷初/次級評估', type:'op'},
+  {id:'h1', unit:'特殊情境與安全', name:'躁動/暴力安撫與約束', type:'op'},
+  {id:'h2', unit:'特殊情境與安全', name:'家暴/性侵/兒虐辨識與通報', type:'know'},
+  {id:'h3', unit:'特殊情境與安全', name:'病人搬運與院內轉送', type:'op'}
+];
+const STATIONS = ['檢傷站','急救／重症區','注射治療區','監測／心電圖','觀察區'];
+const UNITS = [];
+ITEMS.forEach(function(it){ if(UNITS.indexOf(it.unit)<0) UNITS.push(it.unit); });
+function targetOf(type){ return type==='op' ? 4 : 3; }  // 操作型目標 P4，其餘 P3
+
+/* ===== 共用 ===== */
+async function api(payload){
+  const res = await fetch(API, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
+  return res.json();
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},1900); }
+function todayStr(){ const d=new Date(); const p=function(n){return String(n).padStart(2,'0');}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function fmtDate(d){ try{ return String(d).slice(0,10); }catch(e){ return d; } }
+function esc(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+/* ===== 角色切換 ===== */
+let ROLE='teacher';
+function setRole(r){
+  ROLE=r;
+  document.getElementById('role-teacher').classList.toggle('on', r==='teacher');
+  document.getElementById('role-student').classList.toggle('on', r==='student');
+  document.getElementById('lg-acc-label').textContent = r==='teacher'?'員工編號':'學號';
+  document.getElementById('lg-acc').placeholder = r==='teacher'?'輸入你的員工編號':'輸入你的學號';
+  document.getElementById('lg-err').textContent='';
+}
+
+/* ===== 登入 ===== */
+async function doLogin(){
+  const account=document.getElementById('lg-acc').value.trim();
+  const pin=document.getElementById('lg-pin').value.trim();
+  const err=document.getElementById('lg-err'); err.textContent='';
+  if(!account){ err.textContent= ROLE==='teacher'?'請輸入員工編號':'請輸入學號'; return; }
+  if(!pin){ err.textContent='請輸入 PIN'; return; }
+  const action = ROLE==='teacher' ? 'login' : 'studentLogin';
+  try{
+    const r=await api({action, account, pin});
+    if(!r.ok){ err.textContent=r.error||'登入失敗'; return; }
+    sessionStorage.setItem('emtp_role', ROLE);
+    sessionStorage.setItem('emtp_acc', account);
+    if(r.firstTime) toast('已設定你的 PIN ✓');
+    if(ROLE==='teacher'){ sessionStorage.setItem('emtp_teacher', r.name); enterAppTeacher(r.name); }
+    else { sessionStorage.setItem('emtp_sname', r.name); sessionStorage.setItem('emtp_sid', r.studentId); enterAppStudent(r.name, r.studentId); }
+  }catch(e){ err.textContent='連線失敗，請確認 API 網址'; }
+}
+function logout(){ ['emtp_role','emtp_teacher','emtp_acc','emtp_sname','emtp_sid'].forEach(function(k){sessionStorage.removeItem(k);}); location.reload(); }
+function _showApp(){ document.getElementById('login').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); }
+function enterAppTeacher(name){
+  _showApp();
+  document.getElementById('who').textContent=name+' 老師';
+  document.querySelector('.tabs').classList.remove('hidden');
+  document.getElementById('view-self').classList.add('hidden');
+  initForm(); loadStudents(); switchTab('fill');
+}
+function enterAppStudent(name, sid){
+  _showApp();
+  document.getElementById('who').textContent=name+' 學員';
+  document.querySelector('.tabs').classList.add('hidden');
+  document.getElementById('view-fill').classList.add('hidden');
+  document.getElementById('view-query').classList.add('hidden');
+  document.getElementById('view-self').classList.remove('hidden');
+  loadSelf(sid, name);
+}
+async function loadSelf(sid, name){
+  const box=document.getElementById('self-result'); box.innerHTML='<div class="card">載入中…</div>';
+  try{ const r=await api({action:'getStudentRecords', studentId:sid});
+    if(!r.ok){ box.innerHTML='<div class="card">載入失敗</div>'; return; }
+    renderDashboard(r, {container:'self-result', name:name});
+  }catch(e){ box.innerHTML='<div class="card">連線失敗</div>'; }
+}
+
+/* ===== 填寫表單 ===== */
+function initForm(){
+  document.getElementById('f-date').value=todayStr();
+  const sBox=document.getElementById('f-stations'); sBox.innerHTML='';
+  STATIONS.forEach(function(s){
+    const l=document.createElement('label'); l.className='chip';
+    l.innerHTML='<input type="checkbox" value="'+s+'"><span>'+s+'</span>';
+    l.querySelector('input').addEventListener('change',function(e){ l.classList.toggle('on', e.target.checked); });
+    sBox.appendChild(l);
+  });
+  const box=document.getElementById('f-items'); box.innerHTML='';
+  UNITS.forEach(function(u){
+    const h=document.createElement('div'); h.className='unit-head'; h.textContent=u; box.appendChild(h);
+    ITEMS.filter(function(it){return it.unit===u;}).forEach(function(it){
+      const row=document.createElement('div'); row.className='item-row';
+      row.innerHTML='<span class="iname">'+it.name+'</span>'+
+        '<select id="it_'+it.id+'" class="sel">'+
+        '<option value="0">—</option><option value="1">P1 模擬</option><option value="2">P2 觀摩</option>'+
+        '<option value="3">P3 指導下</option><option value="4">P4 獨立</option><option value="5">P5 多次獨立</option></select>';
+      box.appendChild(row);
+    });
+  });
+}
+
+/* ===== 學員名單 ===== */
+let STUDENTS=[];
+async function loadStudents(){
+  try{ const r=await api({action:'listStudents'});
+    if(!r.ok){ toast(r.error||'名單載入失敗'); return; }
+    STUDENTS=r.students||[]; fillStudentSelect('f-student'); fillStudentSelect('q-student');
+  }catch(e){ toast('名單連線失敗'); }
+}
+function fillStudentSelect(id){
+  const sel=document.getElementById(id); sel.innerHTML='<option value="">請選擇學員</option>';
+  STUDENTS.forEach(function(s){ const o=document.createElement('option'); o.value=s.id;
+    o.textContent=s.name+'（'+s.id+(s.cohort?'・'+s.cohort:'')+'）'; sel.appendChild(o); });
+}
+
+/* ===== 送出 ===== */
+async function submitRecord(){
+  const sid=document.getElementById('f-student').value;
+  if(!sid){ toast('請先選擇學員'); return; }
+  const stu=STUDENTS.find(function(s){return s.id===sid;})||{};
+  const stations=[].slice.call(document.querySelectorAll('#f-stations input:checked')).map(function(c){return c.value;});
+  const items={};
+  ITEMS.forEach(function(it){ items[it.id]=parseInt(document.getElementById('it_'+it.id).value)||0; });
+  const record={ studentId:sid, studentName:stu.name||'', date:document.getElementById('f-date').value,
+    slot:document.getElementById('f-slot').value, teacher:sessionStorage.getItem('emtp_teacher')||'',
+    stations:stations, items:items,
+    good:document.getElementById('f-good').value.trim(), improve:document.getElementById('f-improve').value.trim(),
+    event:document.getElementById('f-event').value.trim(), handover:document.getElementById('f-handover').value.trim() };
+  try{ const r=await api({action:'submitRecord', record});
+    if(r.ok){ toast('已送出 ✓'); resetForm(); } else toast(r.error||'送出失敗');
+  }catch(e){ toast('送出連線失敗'); }
+}
+function resetForm(){
+  document.getElementById('f-student').value='';
+  ['f-good','f-improve','f-event','f-handover'].forEach(function(id){document.getElementById(id).value='';});
+  document.querySelectorAll('#f-stations input:checked').forEach(function(c){c.checked=false;c.closest('.chip').classList.remove('on');});
+  ITEMS.forEach(function(it){ document.getElementById('it_'+it.id).value='0'; });
+}
+
+/* ===== 切換 ===== */
+function switchTab(t){
+  const fill=t==='fill';
+  document.getElementById('tab-fill').classList.toggle('on',fill);
+  document.getElementById('tab-query').classList.toggle('on',!fill);
+  document.getElementById('view-fill').classList.toggle('hidden',!fill);
+  document.getElementById('view-query').classList.toggle('hidden',fill);
+}
+
+/* ===== 查詢（老師）===== */
+async function loadStudent(){
+  const sid=document.getElementById('q-student').value; const box=document.getElementById('q-result');
+  if(!sid){ toast('請選擇學員'); return; }
+  box.innerHTML='<div class="card">查詢中…</div>';
+  try{ const r=await api({action:'getStudentRecords', studentId:sid});
+    if(!r.ok){ box.innerHTML='<div class="card">查詢失敗</div>'; return; }
+    const stu=STUDENTS.find(function(s){return s.id===sid;})||{};
+    renderDashboard(r, {container:'q-result', name:stu.name||r.name});
+  }catch(e){ box.innerHTML='<div class="card">連線失敗</div>'; }
+}
+
+/* ===== 達成儀表板 ===== */
+function renderDashboard(r, opts){
+  opts=opts||{}; const box=document.getElementById(opts.container||'q-result');
+  const display=opts.name||r.name||'';
+  if(!r.records || !r.records.length){ box.innerHTML='<div class="card">'+display+' 目前尚無實習紀錄。</div>'; return; }
+  const att=r.attainment||{};
+  let totalDone=0; const total=ITEMS.length; const pending=[];
+  let unitsHtml='';
+  UNITS.forEach(function(u){
+    const its=ITEMS.filter(function(it){return it.unit===u;});
+    let doneU=0, rows='';
+    its.forEach(function(it){
+      const mp=att[it.id]||0, tg=targetOf(it.type), done=mp>=tg;
+      if(done){ doneU++; totalDone++; } else pending.push(it.name.replace(' ⚠️',''));
+      const st = mp===0?'r':(done?'g':'y');
+      const lbl = mp===0?'未開始':(done?('已達成 P'+mp):('進行中 P'+mp));
+      rows+='<div class="item-row2"><span class="dot '+st+'"></span><span class="iname2">'+it.name+'</span>'+
+            '<span class="lvl '+st+'">'+lbl+'</span><span class="tgt">目標 P'+tg+'</span></div>';
+    });
+    const pct=Math.round(doneU/its.length*100);
+    unitsHtml+='<div class="card"><div class="unit-row"><h2 style="border:0;margin:0;padding:0">'+u+'</h2>'+
+      '<span class="ucount">'+doneU+'/'+its.length+'</span></div>'+
+      '<div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+rows+'</div>';
+  });
+  const opct=Math.round(totalDone/total*100);
+  const head='<div class="card"><h2>'+display+'　整體達成</h2><div class="big">'+totalDone+' / '+total+'</div>'+
+    '<div class="pbar big"><div class="pfill" style="width:'+opct+'%"></div></div>'+
+    (pending.length?'<div class="hint" style="margin-top:10px">尚未達標：'+pending.join('、')+'</div>':'<div class="hint" style="margin-top:10px">全部達標 🎉</div>')+'</div>';
+  let recs='';
+  r.records.slice().reverse().forEach(function(rec){
+    const done=ITEMS.filter(function(it){return rec.items[it.id]>0;}).map(function(it){return it.name.replace(' ⚠️','')+'(P'+rec.items[it.id]+')';}).join('、')||'—';
+    recs+='<div class="rec"><div class="meta">'+fmtDate(rec.date)+'・'+rec.slot+'・'+rec.teacher+' 老師'+(rec.stations?'・'+rec.stations:'')+'</div>'+
+      '<div>'+done+'</div>'+
+      (rec.good?'<div><b>良好</b>：'+esc(rec.good)+'</div>':'')+
+      (rec.improve?'<div><b>待加強</b>：'+esc(rec.improve)+'</div>':'')+
+      (rec.handover?'<div><b>交班</b>：'+esc(rec.handover)+'</div>':'')+'</div>';
+  });
+  box.innerHTML=head+unitsHtml+'<div class="card"><h2>歷次紀錄（'+r.records.length+' 筆）</h2>'+recs+'</div>';
+}
+
+/* ===== 啟動 ===== */
+(function(){
+  const role=sessionStorage.getItem('emtp_role'); const acc=sessionStorage.getItem('emtp_acc');
+  if(acc){ document.getElementById('lg-acc').value=acc; }
+  if(role==='student'){ setRole('student'); }
+  if(role==='teacher' && sessionStorage.getItem('emtp_teacher')){ enterAppTeacher(sessionStorage.getItem('emtp_teacher')); }
+  else if(role==='student' && sessionStorage.getItem('emtp_sid')){ enterAppStudent(sessionStorage.getItem('emtp_sname'), sessionStorage.getItem('emtp_sid')); }
+})();
+</script>
+</body>
+</html>
