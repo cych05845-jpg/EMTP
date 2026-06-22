@@ -14,64 +14,79 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",system-ui,sans-serif;
-    font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+    font-size:18px;line-height:1.6;-webkit-text-size-adjust:100%}
   .wrap{max-width:700px;margin:0 auto;padding:0 14px 60px}
   header.top{position:sticky;top:0;z-index:20;background:var(--teal);color:#fff;
     margin:0 -14px 16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
-  header.top h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.5px}
-  header.top .who{font-size:13px;opacity:.95}
+  header.top h1{font-size:21px;margin:0;font-weight:700;letter-spacing:.5px}
+  header.top .who{font-size:14px;opacity:.95}
   .tabs{display:flex;gap:8px;margin:0 0 16px}
   .tabs button{flex:1;padding:11px;border:1px solid var(--line);background:var(--surface);
-    border-radius:11px;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer}
+    border-radius:11px;font-size:16px;font-weight:600;color:var(--muted);cursor:pointer}
   .tabs button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
   .seg{display:flex;gap:8px;margin:0 0 14px}
   .seg button{flex:1;padding:10px;border:1px solid var(--line);background:#fff;border-radius:10px;
-    font-size:15px;font-weight:600;color:var(--muted);cursor:pointer}
+    font-size:16px;font-weight:600;color:var(--muted);cursor:pointer}
   .seg button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
-  .card h2{font-size:15px;margin:0 0 12px;color:var(--teal-d);font-weight:700;padding-bottom:8px;border-bottom:1px solid var(--line)}
-  label.fld{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px;font-weight:600}
+  .card h2{font-size:17px;margin:0 0 12px;color:var(--teal-d);font-weight:700;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  label.fld{display:block;font-size:15px;color:var(--muted);margin:10px 0 4px;font-weight:600}
   input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
-    font-size:16px;font-family:inherit;background:#fff;color:var(--ink)}
+    font-size:17px;font-family:inherit;background:#fff;color:var(--ink)}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
   textarea{min-height:60px;resize:vertical}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-  .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;cursor:pointer;user-select:none;background:#fff}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:15px;cursor:pointer;user-select:none;background:#fff}
   .chip input{width:auto;margin:0}
   .chip.on{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-d);font-weight:600}
   /* 填寫：項目分組 + P 等級 */
-  .unit-head{font-size:13px;font-weight:700;color:var(--teal-d);background:var(--teal-soft);
+  .unit-head{font-size:15px;font-weight:700;color:var(--teal-d);background:var(--teal-soft);
     border-radius:8px;padding:6px 10px;margin:14px 0 8px}
   .unit-head:first-child{margin-top:0}
   .item-row{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
   .item-row:last-child{border-bottom:0}
-  .iname{font-size:14px;line-height:1.4}
-  .sel{padding:9px 8px;font-size:14px}
+  .iname{font-size:16px;line-height:1.4}
+  .sel{padding:11px 8px;font-size:16px}
   .btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;background:var(--teal);color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:var(--shadow)}
   .btn:active{background:var(--teal-d)}
   .btn.ghost{background:#fff;color:var(--teal-d);border:1px solid var(--teal)}
-  .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .more-btn{margin-top:12px;background:none;border:0;color:var(--teal-d);font-size:15px;font-weight:600;cursor:pointer;padding:6px 0;text-decoration:underline}
+  .hint{font-size:14px;color:var(--muted);margin-top:6px}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#16242b;color:#fff;padding:12px 20px;border-radius:30px;font-size:14px;z-index:50;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:1}
   /* 儀表板 */
-  .big{font-size:30px;font-weight:800;color:var(--teal-d);letter-spacing:1px}
+  .big{font-size:34px;font-weight:800;color:var(--teal-d);letter-spacing:1px}
   .pbar{height:9px;background:#e7eef0;border-radius:6px;overflow:hidden;margin-top:8px}
   .pbar.big{height:12px}
   .pfill{height:100%;background:var(--teal);border-radius:6px;transition:width .4s}
   .unit-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
-  .ucount{font-size:14px;font-weight:700;color:var(--teal-d)}
-  .item-row2{display:grid;grid-template-columns:14px 1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+  .ucount{font-size:16px;font-weight:700;color:var(--teal-d)}
+  .item-row2{display:grid;grid-template-columns:14px 1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15.5px}
   .item-row2:last-child{border-bottom:0}
   .dot{width:11px;height:11px;border-radius:50%}
   .dot.g{background:var(--green)} .dot.y{background:var(--amber)} .dot.r{background:#c7d0d3}
   .iname2{line-height:1.35}
-  .lvl{font-size:12px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap}
+  .lvl{font-size:13.5px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap}
   .lvl.g{background:var(--green-soft);color:var(--green)} .lvl.y{background:var(--amber-soft);color:var(--amber)} .lvl.r{background:#eef2f3;color:#9aa9ae;font-weight:500}
-  .tgt{font-size:11.5px;color:var(--muted);white-space:nowrap}
-  .rec{border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px;font-size:13px}
-  .rec .meta{color:var(--muted);font-size:12.5px;margin-bottom:5px}
+  .tgt{font-size:13px;color:var(--muted);white-space:nowrap}
+  .rec{border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px;font-size:15px}
+  .rec .meta{color:var(--muted);font-size:13.5px;margin-bottom:5px}
   .rec b{color:var(--teal-d)}
+  .stat{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .stat .box{flex:1;min-width:78px;text-align:center;background:var(--teal-soft);border-radius:10px;padding:10px 6px}
+  .stat .n{font-size:24px;font-weight:800;color:var(--teal-d);line-height:1.1}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .irate{display:grid;grid-template-columns:1fr 56px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .irate:last-child{border-bottom:0}
+  .irate .ipct{text-align:right;font-weight:700;color:var(--teal-d);font-size:13px}
+  .arow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+  .arow:last-child{border-bottom:0}
+  .arow .nm{font-size:15.5px}
+  .arow .nm small{color:var(--muted);font-size:12.5px}
+  .arow .pg{text-align:right}
+  .arow .pg b{color:var(--teal-d);font-size:15px}
+  .arow .pg .pbar{width:96px;margin-top:4px}
   .login-box{max-width:380px;margin:12vh auto 0;padding:0 18px}
   .login-box .logo{text-align:center;margin-bottom:18px}
   .login-box .logo .t{font-size:21px;font-weight:800;color:var(--teal-d)}
@@ -110,6 +125,7 @@
   <div class="tabs">
     <button id="tab-fill" class="on" onclick="switchTab('fill')">填寫紀錄</button>
     <button id="tab-query" onclick="switchTab('query')">查詢學員</button>
+    <button id="tab-admin" class="hidden" onclick="switchTab('admin')">管理面板</button>
   </div>
 
   <section id="view-fill">
@@ -134,11 +150,18 @@
     </div>
 
     <div class="card">
-      <h2>評語與交班</h2>
-      <label class="fld">良好表現</label><textarea id="f-good"></textarea>
-      <label class="fld">待加強／下次重點</label><textarea id="f-improve"></textarea>
-      <label class="fld">特殊事件／病安提醒</label><textarea id="f-event"></textarea>
-      <label class="fld">交班事項（給下一位帶領老師）</label><textarea id="f-handover"></textarea>
+      <h2>交班與評語</h2>
+      <div class="chips" style="margin-bottom:8px">
+        <label class="chip" id="chip-none"><input type="checkbox" id="f-none" onchange="toggleNoNote(this)"><span>無特殊建議</span></label>
+      </div>
+      <label class="fld">交班事項（給下一位帶領老師）</label>
+      <textarea id="f-handover" placeholder="不想多寫的話，填這欄就好"></textarea>
+      <button type="button" class="more-btn" id="more-btn" onclick="toggleMore()">＋ 給學員的回饋／其他（選填）</button>
+      <div id="more-fields" class="hidden">
+        <label class="fld">良好表現（學員看得到）</label><textarea id="f-good"></textarea>
+        <label class="fld">待加強／下次重點（學員看得到）</label><textarea id="f-improve"></textarea>
+        <label class="fld">特殊事件／病安提醒（學員看不到）</label><textarea id="f-event"></textarea>
+      </div>
     </div>
     <button class="btn" onclick="submitRecord()">送出紀錄</button>
   </section>
@@ -151,6 +174,8 @@
     </div>
     <div id="q-result"></div>
   </section>
+
+  <section id="view-admin" class="hidden"><div id="admin-result"><div class="card">載入中…</div></div></section>
 
   <section id="view-self" class="hidden"><div id="self-result"></div></section>
 </div>
@@ -223,16 +248,21 @@ async function doLogin(){
     sessionStorage.setItem('emtp_role', ROLE);
     sessionStorage.setItem('emtp_acc', account);
     if(r.firstTime) toast('已設定你的 PIN ✓');
-    if(ROLE==='teacher'){ sessionStorage.setItem('emtp_teacher', r.name); enterAppTeacher(r.name); }
+    if(ROLE==='teacher'){
+      sessionStorage.setItem('emtp_teacher', r.name);
+      sessionStorage.setItem('emtp_isadmin', r.role==='admin' ? '1' : '');
+      enterAppTeacher(r.name, r.role);
+    }
     else { sessionStorage.setItem('emtp_sname', r.name); sessionStorage.setItem('emtp_sid', r.studentId); enterAppStudent(r.name, r.studentId); }
   }catch(e){ err.textContent='連線失敗，請確認 API 網址'; }
 }
-function logout(){ ['emtp_role','emtp_teacher','emtp_acc','emtp_sname','emtp_sid'].forEach(function(k){sessionStorage.removeItem(k);}); location.reload(); }
+function logout(){ ['emtp_role','emtp_teacher','emtp_acc','emtp_sname','emtp_sid','emtp_isadmin'].forEach(function(k){sessionStorage.removeItem(k);}); location.reload(); }
 function _showApp(){ document.getElementById('login').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); }
-function enterAppTeacher(name){
+function enterAppTeacher(name, role){
   _showApp();
-  document.getElementById('who').textContent=name+' 老師';
+  document.getElementById('who').textContent=name+(role==='admin'?' 管理者':' 老師');
   document.querySelector('.tabs').classList.remove('hidden');
+  document.getElementById('tab-admin').classList.toggle('hidden', role!=='admin');
   document.getElementById('view-self').classList.add('hidden');
   initForm(); loadStudents(); switchTab('fill');
 }
@@ -249,7 +279,7 @@ async function loadSelf(sid, name){
   const box=document.getElementById('self-result'); box.innerHTML='<div class="card">載入中…</div>';
   try{ const r=await api({action:'getStudentRecords', studentId:sid});
     if(!r.ok){ box.innerHTML='<div class="card">載入失敗</div>'; return; }
-    renderDashboard(r, {container:'self-result', name:name});
+    renderDashboard(r, {container:'self-result', name:name, viewer:'student'});
   }catch(e){ box.innerHTML='<div class="card">連線失敗</div>'; }
 }
 
@@ -313,15 +343,31 @@ function resetForm(){
   ['f-good','f-improve','f-event','f-handover'].forEach(function(id){document.getElementById(id).value='';});
   document.querySelectorAll('#f-stations input:checked').forEach(function(c){c.checked=false;c.closest('.chip').classList.remove('on');});
   ITEMS.forEach(function(it){ document.getElementById('it_'+it.id).value='0'; });
+  const none=document.getElementById('f-none');
+  if(none){ none.checked=false; none.closest('.chip').classList.remove('on'); }
+  document.getElementById('f-handover').removeAttribute('disabled');
+  const m=document.getElementById('more-fields');
+  if(m){ m.classList.add('hidden'); document.getElementById('more-btn').textContent='＋ 給學員的回饋／其他（選填）'; }
+}
+function toggleNoNote(cb){
+  const h=document.getElementById('f-handover');
+  if(cb.checked){ h.value='無特殊建議'; h.setAttribute('disabled','disabled'); }
+  else { if(h.value==='無特殊建議') h.value=''; h.removeAttribute('disabled'); }
+  cb.closest('.chip').classList.toggle('on', cb.checked);
+}
+function toggleMore(){
+  const m=document.getElementById('more-fields'), b=document.getElementById('more-btn');
+  const nowHidden=m.classList.toggle('hidden');
+  b.textContent = nowHidden ? '＋ 給學員的回饋／其他（選填）' : '− 收起其他欄位';
 }
 
 /* ===== 切換 ===== */
 function switchTab(t){
-  const fill=t==='fill';
-  document.getElementById('tab-fill').classList.toggle('on',fill);
-  document.getElementById('tab-query').classList.toggle('on',!fill);
-  document.getElementById('view-fill').classList.toggle('hidden',!fill);
-  document.getElementById('view-query').classList.toggle('hidden',fill);
+  ['fill','query','admin'].forEach(function(x){
+    document.getElementById('tab-'+x).classList.toggle('on', x===t);
+    document.getElementById('view-'+x).classList.toggle('hidden', x!==t);
+  });
+  if(t==='admin') loadAdmin();
 }
 
 /* ===== 查詢（老師）===== */
@@ -332,7 +378,7 @@ async function loadStudent(){
   try{ const r=await api({action:'getStudentRecords', studentId:sid});
     if(!r.ok){ box.innerHTML='<div class="card">查詢失敗</div>'; return; }
     const stu=STUDENTS.find(function(s){return s.id===sid;})||{};
-    renderDashboard(r, {container:'q-result', name:stu.name||r.name});
+    renderDashboard(r, {container:'q-result', name:stu.name||r.name, viewer:'teacher'});
   }catch(e){ box.innerHTML='<div class="card">連線失敗</div>'; }
 }
 
@@ -364,6 +410,7 @@ function renderDashboard(r, opts){
   const head='<div class="card"><h2>'+display+'　整體達成</h2><div class="big">'+totalDone+' / '+total+'</div>'+
     '<div class="pbar big"><div class="pfill" style="width:'+opct+'%"></div></div>'+
     (pending.length?'<div class="hint" style="margin-top:10px">尚未達標：'+pending.join('、')+'</div>':'<div class="hint" style="margin-top:10px">全部達標 🎉</div>')+'</div>';
+  const isTeacher = (opts.viewer === 'teacher');
   let recs='';
   r.records.slice().reverse().forEach(function(rec){
     const done=ITEMS.filter(function(it){return rec.items[it.id]>0;}).map(function(it){return it.name.replace(' ⚠️','')+'(P'+rec.items[it.id]+')';}).join('、')||'—';
@@ -371,9 +418,56 @@ function renderDashboard(r, opts){
       '<div>'+done+'</div>'+
       (rec.good?'<div><b>良好</b>：'+esc(rec.good)+'</div>':'')+
       (rec.improve?'<div><b>待加強</b>：'+esc(rec.improve)+'</div>':'')+
-      (rec.handover?'<div><b>交班</b>：'+esc(rec.handover)+'</div>':'')+'</div>';
+      ((isTeacher&&rec.event)?'<div><b>事件</b>：'+esc(rec.event)+'</div>':'')+
+      ((isTeacher&&rec.handover)?'<div><b>交班</b>：'+esc(rec.handover)+'</div>':'')+'</div>';
   });
   box.innerHTML=head+unitsHtml+'<div class="card"><h2>歷次紀錄（'+r.records.length+' 筆）</h2>'+recs+'</div>';
+}
+
+/* ===== 管理面板（admin）===== */
+let ADMIN_ROSTER=[];
+function doneCount(att){ let n=0; ITEMS.forEach(function(it){ if((att[it.id]||0)>=targetOf(it.type)) n++; }); return n; }
+async function loadAdmin(){
+  const box=document.getElementById('admin-result'); box.innerHTML='<div class="card">載入中…</div>';
+  try{ const r=await api({action:'getAllProgress'});
+    if(!r.ok){ box.innerHTML='<div class="card">載入失敗：'+(r.error||'')+'</div>'; return; }
+    ADMIN_ROSTER=r.roster||[]; renderAdmin();
+  }catch(e){ box.innerHTML='<div class="card">連線失敗</div>'; }
+}
+function renderAdmin(){
+  const box=document.getElementById('admin-result');
+  const roster=ADMIN_ROSTER, total=ITEMS.length, N=roster.length;
+  if(!N){ box.innerHTML='<div class="card">名單中沒有學員。</div>'; return; }
+  let started=0, completed=0, sumDone=0;
+  roster.forEach(function(s){ s._done=doneCount(s.attainment); sumDone+=s._done; if(s.recordCount>0) started++; if(s._done===total) completed++; });
+  const avg=(sumDone/N).toFixed(1);
+  const stat='<div class="card"><h2>概況</h2><div class="stat">'+
+    '<div class="box"><div class="n">'+N+'</div><div class="l">學員數</div></div>'+
+    '<div class="box"><div class="n">'+started+'</div><div class="l">已開始</div></div>'+
+    '<div class="box"><div class="n">'+completed+'</div><div class="l">全達標</div></div>'+
+    '<div class="box"><div class="n">'+avg+'</div><div class="l">平均達成/'+total+'</div></div></div></div>';
+  let irows='';
+  ITEMS.forEach(function(it){
+    let c=0; roster.forEach(function(s){ if((s.attainment[it.id]||0)>=targetOf(it.type)) c++; });
+    const pct=Math.round(c/N*100);
+    irows+='<div class="irate"><div>'+it.name+'<div class="pbar" style="margin-top:4px"><div class="pfill" style="width:'+pct+'%"></div></div></div><div class="ipct">'+pct+'%</div></div>';
+  });
+  const rate='<div class="card"><h2>各項目達標率（全梯）</h2>'+irows+'</div>';
+  const sorted=roster.slice().sort(function(a,b){ return a._done-b._done || String(a.name).localeCompare(String(b.name)); });
+  let arows='';
+  sorted.forEach(function(s){
+    const pct=Math.round(s._done/total*100);
+    arows+='<div class="arow" onclick="adminViewStudent(\''+s.id+'\')">'+
+      '<div class="nm">'+s.name+' <small>'+s.id+(s.cohort?'・'+s.cohort:'')+(s.recordCount===0?'・未開始':'')+'</small></div>'+
+      '<div class="pg"><b>'+s._done+'/'+total+'</b><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div></div></div>';
+  });
+  const tbl='<div class="card"><h2>學員進度（點一列看細節；落後者排前面）</h2>'+arows+'</div>';
+  box.innerHTML=stat+rate+tbl;
+}
+function adminViewStudent(id){
+  document.getElementById('q-student').value=id;
+  switchTab('query');
+  loadStudent();
 }
 
 /* ===== 啟動 ===== */
@@ -381,7 +475,7 @@ function renderDashboard(r, opts){
   const role=sessionStorage.getItem('emtp_role'); const acc=sessionStorage.getItem('emtp_acc');
   if(acc){ document.getElementById('lg-acc').value=acc; }
   if(role==='student'){ setRole('student'); }
-  if(role==='teacher' && sessionStorage.getItem('emtp_teacher')){ enterAppTeacher(sessionStorage.getItem('emtp_teacher')); }
+  if(role==='teacher' && sessionStorage.getItem('emtp_teacher')){ enterAppTeacher(sessionStorage.getItem('emtp_teacher'), sessionStorage.getItem('emtp_isadmin')==='1'?'admin':'teacher'); }
   else if(role==='student' && sessionStorage.getItem('emtp_sid')){ enterAppStudent(sessionStorage.getItem('emtp_sname'), sessionStorage.getItem('emtp_sid')); }
 })();
 </script>
