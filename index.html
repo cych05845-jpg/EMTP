@@ -1,1370 +1,515 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>考核會談時段預約</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EMTP 醫院實習紀錄</title>
 <style>
   :root{
-    --bg:#F5F7F9; --surface:#FFFFFF; --ink:#1F2A37; --muted:#5B6876; --hair:#E4E9ED;
-    --teal:#0E8C7F; --teal-dark:#0B7468; --teal-soft:#E3F4F1;
-    --taken-bg:#EDF0F3; --taken-ink:#9AA6B2;
-    --night:#4F46E5; --night-soft:#EEF0FF;
-    --eve:#C2741A;   --eve-soft:#FAF1E4;
-    --day:#0E7CC2;   --day-soft:#E7F2FB;
-    --radius:14px;
+    --bg:#eef2f3; --surface:#fff; --ink:#16242b; --muted:#5f7178; --line:#d8e2e5;
+    --teal:#0f6e73; --teal-d:#0a565a; --teal-soft:#e3f0f0;
+    --green:#1f8a55; --green-soft:#e6f4ec; --amber:#c98a1e; --amber-soft:#fbf2dd;
+    --red:#b14a3a; --red-soft:#f6e7e3; --shadow:0 1px 3px rgba(16,40,48,.08),0 1px 2px rgba(16,40,48,.06);
   }
-  *{box-sizing:border-box;}
-  body{margin:0; background:var(--bg); color:var(--ink);
-    font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
-    -webkit-font-smoothing:antialiased; line-height:1.5;}
-  .wrap{max-width:560px; margin:0 auto; padding:0 16px 96px;}
-
-  header{position:sticky; top:0; z-index:20; background:rgba(245,247,249,.92);
-    backdrop-filter:saturate(1.2) blur(8px); border-bottom:1px solid var(--hair);}
-  .head-inner{max-width:560px; margin:0 auto; padding:14px 16px 12px;
-    display:flex; align-items:center; justify-content:space-between; gap:12px;}
-  .title{font-size:18px; font-weight:700; letter-spacing:.3px;}
-  .title small{display:block; font-weight:500; font-size:12px; color:var(--muted); margin-top:1px;}
-  .admin-toggle{font-size:12px; color:var(--muted); background:none; border:1px solid var(--hair);
-    padding:6px 10px; border-radius:999px; cursor:pointer; white-space:nowrap;}
-  .admin-toggle.on{color:var(--teal-dark); border-color:var(--teal); background:var(--teal-soft);}
-
-  .panel{background:var(--surface); border:1px solid var(--hair); border-radius:var(--radius);
-    padding:14px; margin:16px 0;}
-  .field-label{font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600;}
-  select{width:100%; padding:12px 14px; font-size:16px; border:1px solid var(--hair);
-    border-radius:10px; background:#fff; color:var(--ink); appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%235B6876' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right 12px center;}
-  .role-line{font-size:12px; color:var(--muted); margin-top:8px;}
-  .role-line b{color:var(--ink);}
-  .email-inp{width:100%; margin-top:10px; padding:11px 13px; font-size:15px; border:1px solid var(--hair);
-    border-radius:10px; color:var(--ink); box-sizing:border-box;}
-  .email-inp:focus{outline:2px solid var(--teal); outline-offset:1px; border-color:var(--teal);}
-  .status{margin-top:10px; font-size:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-  .status .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
-  .status.empty{color:var(--muted);} .status.empty .dot{background:#C2CAD3;}
-  .status.none{color:var(--eve);} .status.none .dot{background:var(--eve);}
-  .status.booked .dot{background:var(--teal);}
-  .status.booked b{color:var(--teal-dark);}
-  .mini-cancel{margin-left:auto; font-size:12px; color:#B4453C; background:none;
-    border:1px solid #EBC9C6; padding:5px 10px; border-radius:999px; cursor:pointer;}
-
-  /* 預約完成後：行事曆 / 考核單 */
-  .actions{display:none; gap:8px; margin-top:12px; flex-wrap:wrap;}
-  .actions.show{display:flex;}
-  .act-btn{font-size:13px; font-weight:600; padding:9px 13px; border-radius:10px; cursor:pointer;
-    border:1px solid var(--teal); background:var(--teal-soft); color:var(--teal-dark);
-    display:inline-flex; align-items:center; gap:6px; text-decoration:none;}
-  .act-btn:hover{background:var(--teal); color:#fff;}
-  .act-btn svg{width:15px;height:15px;}
-
-  .admin-box{background:var(--surface); border:1px solid var(--teal); border-radius:var(--radius);
-    padding:14px; margin:0 0 16px; display:none;}
-  .admin-box.show{display:block;}
-  .admin-box h4{margin:0 0 10px; font-size:13px; color:var(--teal-dark); letter-spacing:.5px;}
-  .role-row{display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:13px;}
-  .role-name{width:62px; flex:0 0 auto; font-weight:600;}
-  .bar{flex:1; height:7px; background:#EDF0F3; border-radius:99px; overflow:hidden;}
-  .bar > span{display:block; height:100%; background:var(--teal); border-radius:99px;}
-  .role-num{width:54px; text-align:right; flex:0 0 auto; color:var(--muted);
-    font-variant-numeric:tabular-nums; font-family:ui-monospace,Menlo,monospace;}
-  .pending{margin-top:12px; border-top:1px dashed var(--hair); padding-top:10px;}
-  .pending h4{color:var(--eve); margin-bottom:8px;}
-  .pending .grp{font-size:12.5px; margin-bottom:6px;}
-  .pending .grp b{color:var(--ink);} .pending .grp span{color:var(--muted);}
-  /* 開放日期管理 */
-  #cfgBox h4{margin:0 0 10px; font-size:13px; color:var(--teal-dark); letter-spacing:.5px;}
-  .cfg-row{display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--hair); font-size:13px; flex-wrap:wrap;}
-  .cfg-row .cdate{font-weight:700; width:84px; font-variant-numeric:tabular-nums;}
-  .cfg-row label{display:inline-flex; align-items:center; gap:3px; color:var(--muted);}
-  .cfg-row .del{margin-left:auto; font-size:12px; color:#B4453C; background:none; border:1px solid #EBC9C6; border-radius:99px; padding:3px 9px; cursor:pointer;}
-  .walkin-row{display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;}
-  .walkin-row select{flex:1; min-width:160px; padding:8px 10px; border:1px solid var(--hair); border-radius:8px; font:inherit;}
-  .cfg-add{display:flex; align-items:center; gap:8px; margin-top:12px; flex-wrap:wrap; font-size:13px;}
-  .cfg-add input[type=date]{padding:7px 8px; border:1px solid var(--hair); border-radius:8px; font:inherit;}
-  .cfg-add label{display:inline-flex; align-items:center; gap:3px; color:var(--muted);}
-  .cfg-add .addbtn{background:var(--teal-soft); color:var(--teal-dark); border:1px solid var(--teal); border-radius:8px; padding:7px 12px; font-weight:600; cursor:pointer;}
-  .cfg-foot{display:flex; gap:10px; margin-top:14px;}
-  .cfg-save{flex:1; background:var(--teal); color:#fff; border:none; border-radius:9px; padding:11px; font-weight:700; cursor:pointer;}
-  .cfg-clear{background:#fff; color:#B4453C; border:1px solid #EBC9C6; border-radius:9px; padding:11px 14px; font-weight:600; cursor:pointer;}
-  .cfg-note{font-size:11.5px; color:var(--muted); margin-top:8px;}
-  .ffilter{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
-  .fbtn{font-size:12px; padding:5px 11px; border-radius:99px; border:1px solid var(--hair); background:#fff; color:var(--muted); cursor:pointer;}
-  .fbtn.on{background:var(--teal-soft); color:var(--teal-dark); border-color:var(--teal); font-weight:600;}
-  .fsearch{width:100%; padding:9px 11px; border:1px solid var(--hair); border-radius:8px; margin-bottom:6px; font:inherit; box-sizing:border-box;}
-  .form-item{display:flex; align-items:center; justify-content:space-between; gap:8px;
-    padding:9px 4px; border-bottom:1px solid var(--hair); font-size:13.5px; cursor:pointer;}
-  .form-item:hover{background:#F6F9FA;}
-  .fstage{font-size:11px; padding:2px 9px; border-radius:99px; background:#EDF0F3; color:var(--muted);}
-  .fstage.self{background:#FAF1E4; color:#C2741A;}
-  .fstage.done{background:#E3F4F1; color:var(--teal-dark);}
-
-  .day{background:var(--surface); border:1px solid var(--hair); border-radius:var(--radius);
-    padding:14px 14px 6px; margin-bottom:14px;}
-  .day-head{display:flex; align-items:baseline; gap:8px; margin-bottom:10px;}
-  .day-date{font-size:16px; font-weight:700;}
-  .day-wd{font-size:13px; color:var(--muted);}
-  .day-left{margin-left:auto; font-size:12px; color:var(--muted);}
-  .shift{margin-bottom:12px;}
-  .shift-label{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
-  .shift-tag{font-size:13px; font-weight:700; padding:2px 10px; border-radius:999px;}
-  .shift-win{font-size:12px; color:var(--muted);
-    font-variant-numeric:tabular-nums; font-family:ui-monospace,"SF Mono",Menlo,monospace;}
-  .night .shift-tag{color:var(--night); background:var(--night-soft);}
-  .eve   .shift-tag{color:var(--eve);   background:var(--eve-soft);}
-  .day-s .shift-tag{color:var(--day);   background:var(--day-soft);}
-  .slots{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
-  .slot{position:relative; border:1.5px solid var(--hair); background:#fff; color:var(--ink);
-    border-radius:10px; padding:11px 4px 9px; cursor:pointer; text-align:center;
-    font-size:15px; font-variant-numeric:tabular-nums;
-    font-family:ui-monospace,"SF Mono",Menlo,monospace; transition:transform .06s, border-color .12s;}
-  .slot:hover{border-color:var(--teal); transform:translateY(-1px);}
-  .slot:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
-  .slot .sub{display:block; font-size:10px; margin-top:3px;
-    font-family:"PingFang TC","Noto Sans TC",sans-serif; color:var(--muted);}
-  .slot.taken{background:var(--taken-bg); color:var(--taken-ink); border-color:var(--taken-bg); cursor:not-allowed;}
-  .slot.taken:hover{transform:none; border-color:var(--taken-bg);}
-  .slot.taken .sub{color:var(--taken-ink);}
-  .slot.mine{background:var(--teal); color:#fff; border-color:var(--teal);}
-  .slot.mine .sub{color:#D6F1EC;}
-  .slot.mine:hover{border-color:var(--teal-dark); background:var(--teal-dark);}
-
-  footer{position:fixed; left:0; right:0; bottom:0; background:rgba(255,255,255,.95);
-    backdrop-filter:blur(8px); border-top:1px solid var(--hair); padding:12px 16px;
-    text-align:center; font-size:13px; color:var(--muted);}
-  footer b{color:var(--ink);}
-
-  .overlay{position:fixed; inset:0; background:rgba(20,30,40,.42); display:none;
-    align-items:center; justify-content:center; padding:24px; z-index:50;}
-  .overlay.show{display:flex;}
-  .modal{background:#fff; border-radius:16px; padding:22px; width:100%; max-width:340px;
-    box-shadow:0 20px 50px rgba(0,0,0,.2);}
-  .modal h3{margin:0 0 6px; font-size:17px;}
-  .modal p{margin:0 0 18px; font-size:14px; color:var(--muted);}
-  .modal .big{color:var(--ink); font-weight:700; font-size:16px;}
-  .modal-actions{display:flex; gap:10px;}
-  .btn{flex:1; padding:12px; border-radius:10px; font-size:15px; font-weight:600; border:none; cursor:pointer;}
-  .btn-ghost{background:#F1F4F6; color:var(--muted);}
-  .btn-primary{background:var(--teal); color:#fff;} .btn-primary:hover{background:var(--teal-dark);}
-  .btn-danger{background:#C0473D; color:#fff;}
-
-  /* 考核單 */
-  .sheet{max-width:520px; max-height:84vh; overflow:auto; text-align:left; padding:0;}
-  .form-paper{padding:28px 30px;}
-  .form-paper .fp-head{text-align:center; border-bottom:2px solid var(--ink); padding-bottom:10px; margin-bottom:16px;}
-  .form-paper .fp-head .org{font-size:12px; color:var(--muted); letter-spacing:1px;}
-  .form-paper .fp-head .ttl{font-size:20px; font-weight:700; margin-top:2px;}
-  .fp-meta{display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; font-size:14px; margin-bottom:18px;}
-  .fp-meta div{border-bottom:1px solid var(--hair); padding:6px 2px;}
-  .fp-meta span{color:var(--muted); margin-right:8px;}
-  .fp-table{width:100%; border-collapse:collapse; font-size:13.5px; margin-bottom:18px;}
-  .fp-table th,.fp-table td{border:1px solid #C9D2D9; padding:8px 10px; text-align:left;}
-  .fp-table th{background:#F2F5F7; font-weight:600;}
-  .fp-block{font-size:14px; margin-bottom:16px;}
-  .fp-block .lbl{font-weight:600; margin-bottom:6px;}
-  .fp-block .box{border:1px solid var(--hair); border-radius:8px; min-height:70px;}
-  .fp-note{font-size:12px; color:var(--muted); margin:18px 0 8px;}
-  .fp-sign-grid{display:grid; grid-template-columns:1fr; gap:18px; margin-top:6px;}
-  .sig-cap{font-size:12px; color:var(--muted); margin-bottom:5px; font-weight:600;}
-  .sig-pad{width:100%; height:160px; border:1px solid #C9D2D9; border-radius:8px; background:#fff;
-    touch-action:none; display:block; cursor:crosshair;}
-  .sig-clear{margin-top:5px; font-size:11px; color:var(--muted); background:none;
-    border:1px solid var(--hair); border-radius:99px; padding:3px 10px; cursor:pointer;}
-  .sig-wrap.dim{opacity:.4; pointer-events:none;}
-  .sig-foot{display:flex; align-items:center; justify-content:space-between; margin-top:6px;}
-  .sig-date{font-size:11.5px; color:var(--muted);}
-  .mic-btn{margin-left:10px; font-size:12px; font-weight:600; color:var(--teal-dark);
-    background:var(--teal-soft); border:1px solid var(--teal); border-radius:99px; padding:3px 10px; cursor:pointer;}
-  .mic-btn.rec{background:#FBE9E7; color:#C0473D; border-color:#E3A8A2;}
-  .phrase-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
-  .phrase-chip{font-size:12px; color:var(--ink); background:#F1F4F6; border:1px solid var(--hair);
-    border-radius:99px; padding:5px 11px; cursor:pointer;}
-  .phrase-chip:hover{background:var(--teal-soft); border-color:var(--teal); color:var(--teal-dark);}
-  .go-btn{margin-left:auto; font-size:12px; color:var(--teal-dark); background:var(--teal-soft);
-    border:1px solid var(--teal); padding:5px 11px; border-radius:99px; cursor:pointer; font-weight:600;}
-  /* 兩階段切換 */
-  .stage-tabs{display:flex; gap:8px; margin:16px 0 14px;}
-  .stage-tab{flex:1; padding:10px 6px; border:1px solid var(--hair); border-radius:9px; background:#fff;
-    font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; line-height:1.3;}
-  .stage-tab.active{background:var(--teal-soft); color:var(--teal-dark); border-color:var(--teal);}
-  .stage-tab small{display:block; font-weight:500; font-size:10.5px; opacity:.8;}
-  /* 評分表 */
-  .score-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:8px; table-layout:fixed;}
-  .score-table th,.score-table td{border:1px solid #D2DAE0; padding:6px 6px; vertical-align:middle; word-break:break-word;}
-  .score-table th{background:#F2F5F7; font-weight:600; font-size:11px; text-align:center;}
-  .score-table th.tw{width:auto;} .score-table col.cw{width:30px;} .score-table col.iw{width:46px;}
-  .score-table .cat td{background:#E7F0F3; font-weight:700;}
-  .score-table .subh td{background:#F4F8F9; font-weight:600; color:var(--muted); font-size:11.5px;}
-  .score-table .note-row td{background:#FBF6EE; color:#9A5B2A; font-size:11px;}
-  .score-table td.c{text-align:center; color:var(--muted);}
-  .score-inp{width:100%; padding:5px 0; text-align:center; border:1px solid #C9D2D9; border-radius:6px;
-    font-size:13px; font-family:inherit;}
-  .score-inp:disabled{background:#F1F4F6; color:#9AA6B2;}
-  .hide-sup .supcol{ display:none !important; }
-  .subtotal td{background:#FAFCFC; font-weight:700; text-align:center;}
-  .subtotal td.lbl{text-align:right;}
-  .grand{display:flex; justify-content:space-between; gap:12px; margin:4px 2px 16px; font-size:14px; font-weight:700;}
-  .grand b{color:var(--teal-dark);}
-  .fb-area, .remark-area{width:100%; min-height:60px; border:1px solid var(--hair); border-radius:8px; padding:8px;
-    font:inherit; font-size:13px; resize:vertical; box-sizing:border-box;}
-  .form-actions{padding:14px 22px 20px;}
-
-  .toast{position:fixed; left:50%; bottom:80px; transform:translateX(-50%) translateY(20px);
-    background:#1F2A37; color:#fff; padding:11px 18px; border-radius:999px; font-size:13.5px;
-    opacity:0; pointer-events:none; transition:.25s; z-index:60; max-width:90%;}
-  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
-
-  /* 列印：只印考核單 */
-  /* 官方格式列印文件（螢幕上移到畫面外，列印時才顯示） */
-  #printDoc{position:fixed; left:-99999px; top:0; width:100%; background:#fff; color:#000;}
-  @page{ size:A4; margin:11mm 12mm; }
-  #printDoc{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  .pd-wrap{padding:0; font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif; color:#000; line-height:1.35;}
-  .pd-head{text-align:center; border-bottom:1.5px solid #000; padding-bottom:5px; margin-bottom:7px;}
-  .pd-org{font-size:11px;} .pd-title{font-size:17px; font-weight:700;}
-  .pd-meta{font-size:12px; margin-bottom:7px; display:flex; flex-wrap:wrap; gap:3px 18px;}
-  .pd-table{width:100%; border-collapse:collapse; font-size:10.5px;}
-  .pd-table th,.pd-table td{border:1px solid #000; padding:4px 6px; vertical-align:middle; line-height:1.25;}
-  .pd-table th{background:#eee; text-align:center; font-weight:700;}
-  .pd-table tr{break-inside:avoid; page-break-inside:avoid;}
-  .pd-table .cat{writing-mode:vertical-rl; text-align:center; font-weight:700; width:22px; letter-spacing:2px;}
-  .pd-table .c{text-align:center;}
-  .pd-sub{font-weight:700; background:#f6f6f6;}
-  .pd-note{background:#faf6ee; color:#7a4a17; font-size:10px;}
-  .pd-tot{display:flex; gap:24px; font-size:12px; font-weight:700; margin:8px 2px;}
-  .pd-block{font-size:11px; margin:6px 0;}
-  .pd-block .l{font-weight:700; margin-bottom:2px;} .pd-block .b{border:1px solid #000; min-height:34px; padding:4px 6px; white-space:pre-wrap;}
-  .pd-sign{display:flex; gap:12px; margin-top:12px; break-inside:avoid; page-break-inside:avoid;}
-  .pd-sign .col{flex:1; text-align:center; font-size:11px;}
-  .pd-sign .box{border:1px solid #000; height:78px; display:flex; align-items:center; justify-content:center;}
-  .pd-sign .box img{max-width:100%; max-height:74px;}
-  .pd-sign .lab{margin-top:3px;}
-  @media print{
-    body > *:not(#printDoc){ display:none !important; }   /* 移除其他元素，避免空白頁 */
-    #printDoc{ position:static; left:0; display:block; }
-    .no-print{ display:none !important; }
-  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",system-ui,sans-serif;
+    font-size:18px;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:700px;margin:0 auto;padding:0 14px 60px}
+  header.top{position:sticky;top:0;z-index:20;background:var(--teal);color:#fff;
+    margin:0 -14px 16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+  header.top h1{font-size:21px;margin:0;font-weight:700;letter-spacing:.5px}
+  header.top .who{font-size:14px;opacity:.95}
+  .tabs{display:flex;gap:8px;margin:0 0 16px}
+  .tabs button{flex:1;padding:11px;border:1px solid var(--line);background:var(--surface);
+    border-radius:11px;font-size:16px;font-weight:600;color:var(--muted);cursor:pointer}
+  .tabs button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .seg{display:flex;gap:8px;margin:0 0 14px}
+  .seg button{flex:1;padding:10px;border:1px solid var(--line);background:#fff;border-radius:10px;
+    font-size:16px;font-weight:600;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .card h2{font-size:17px;margin:0 0 12px;color:var(--teal-d);font-weight:700;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  label.fld{display:block;font-size:15px;color:var(--muted);margin:10px 0 4px;font-weight:600}
+  input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:17px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+  textarea{min-height:60px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;font-size:15px;cursor:pointer;user-select:none;background:#fff}
+  .chip input{width:auto;margin:0}
+  .chip.on{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-d);font-weight:600}
+  /* 填寫：項目分組 + P 等級 */
+  .unit-head{font-size:15px;font-weight:700;color:var(--teal-d);background:var(--teal-soft);
+    border-radius:8px;padding:6px 10px;margin:14px 0 8px}
+  .unit-head:first-child{margin-top:0}
+  .item-row{display:grid;grid-template-columns:1fr 150px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .item-row:last-child{border-bottom:0}
+  .iname{font-size:16px;line-height:1.4}
+  .sel{padding:11px 8px;font-size:16px}
+  .btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;background:var(--teal);color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:var(--shadow)}
+  .btn:active{background:var(--teal-d)}
+  .btn.ghost{background:#fff;color:var(--teal-d);border:1px solid var(--teal)}
+  .more-btn{margin-top:12px;background:none;border:0;color:var(--teal-d);font-size:15px;font-weight:600;cursor:pointer;padding:6px 0;text-decoration:underline}
+  .hint{font-size:14px;color:var(--muted);margin-top:6px}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#16242b;color:#fff;padding:12px 20px;border-radius:30px;font-size:14px;z-index:50;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
+  /* 儀表板 */
+  .big{font-size:34px;font-weight:800;color:var(--teal-d);letter-spacing:1px}
+  .pbar{height:9px;background:#e7eef0;border-radius:6px;overflow:hidden;margin-top:8px}
+  .pbar.big{height:12px}
+  .pfill{height:100%;background:var(--teal);border-radius:6px;transition:width .4s}
+  .unit-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+  .ucount{font-size:16px;font-weight:700;color:var(--teal-d)}
+  .item-row2{display:grid;grid-template-columns:14px 1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15.5px}
+  .item-row2:last-child{border-bottom:0}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.g{background:var(--green)} .dot.y{background:var(--amber)} .dot.r{background:#c7d0d3}
+  .iname2{line-height:1.35}
+  .lvl{font-size:13.5px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap}
+  .lvl.g{background:var(--green-soft);color:var(--green)} .lvl.y{background:var(--amber-soft);color:var(--amber)} .lvl.r{background:#eef2f3;color:#9aa9ae;font-weight:500}
+  .tgt{font-size:13px;color:var(--muted);white-space:nowrap}
+  .rec{border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px;font-size:15px}
+  .rec .meta{color:var(--muted);font-size:13.5px;margin-bottom:5px}
+  .rec b{color:var(--teal-d)}
+  .stat{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .stat .box{flex:1;min-width:78px;text-align:center;background:var(--teal-soft);border-radius:10px;padding:10px 6px}
+  .stat .n{font-size:24px;font-weight:800;color:var(--teal-d);line-height:1.1}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .irate{display:grid;grid-template-columns:1fr 56px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .irate:last-child{border-bottom:0}
+  .irate .ipct{text-align:right;font-weight:700;color:var(--teal-d);font-size:13px}
+  .arow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+  .arow:last-child{border-bottom:0}
+  .arow .nm{font-size:15.5px}
+  .arow .nm small{color:var(--muted);font-size:12.5px}
+  .arow .pg{text-align:right}
+  .arow .pg b{color:var(--teal-d);font-size:15px}
+  .arow .pg .pbar{width:96px;margin-top:4px}
+  .login-box{max-width:380px;margin:12vh auto 0;padding:0 18px}
+  .login-box .logo{text-align:center;margin-bottom:18px}
+  .login-box .logo .t{font-size:21px;font-weight:800;color:var(--teal-d)}
+  .login-box .logo .s{font-size:13px;color:var(--muted);margin-top:3px}
+  .hidden{display:none!important}
+  .err{color:var(--red);font-size:13px;margin-top:8px;min-height:18px}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="head-inner">
-    <div class="title">考核會談時段預約<small>嘉義基督教醫院急診　每場 15 分鐘</small></div>
-    <button class="admin-toggle" id="adminBtn">管理檢視</button>
-  </div>
-</header>
-
-<div class="wrap">
-  <div class="panel">
-    <div class="field-label">請選擇您的姓名（依職類分組）</div>
-    <select id="userSelect"><option value="">— 請選擇 —</option></select>
-    <div class="role-line" id="roleLine"></div>
-    <input id="userEmail" class="email-inp" type="email" inputmode="email"
-           placeholder="您的 email（用來寄預約確認信）" autocomplete="email" style="display:none">
-    <div class="status empty" id="status"><span class="dot"></span><span id="statusText">尚未選擇姓名</span></div>
-    <div class="actions" id="actions"></div>
-  </div>
-
-  <div class="admin-box" id="adminBox"></div>
-  <div class="admin-box" id="formsBox" style="display:none"></div>
-  <div class="admin-box" id="cfgBox" style="display:none"></div>
-  <div id="board"></div>
-</div>
-
-<footer>本週共開放 <b id="totalSlots">0</b> 格 · 尚餘 <b id="freeSlots">0</b> 格 · 待預約 <b id="pendingPeople">0</b> 人</footer>
-
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <h3 id="mTitle">確認預約</h3>
-    <p id="mBody"></p>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="mCancel">返回</button>
-      <button class="btn btn-primary" id="mOk">確認</button>
+<!-- 登入 -->
+<div id="login" class="login-box">
+  <div class="logo"><div class="t">EMTP 醫院實習紀錄</div><div class="s">嘉義基督教醫院　急診</div></div>
+  <div class="card">
+    <div class="seg">
+      <button id="role-teacher" class="on" onclick="setRole('teacher')">老師</button>
+      <button id="role-student" onclick="setRole('student')">學員</button>
     </div>
+    <label class="fld" id="lg-acc-label">員工編號</label>
+    <input id="lg-acc" placeholder="輸入你的員工編號" autocomplete="off">
+    <label class="fld">PIN 碼</label>
+    <input id="lg-pin" type="password" placeholder="4–6 位數字" autocomplete="off" inputmode="numeric">
+    <div class="err" id="lg-err"></div>
+    <button class="btn" style="margin-top:6px" onclick="doLogin()">登入</button>
+    <div class="hint">PIN 由護理長／帶領老師在名單上設定。忘記或要修改，請洽他們調整名單。</div>
   </div>
 </div>
 
-<!-- 考核單 -->
-<div class="overlay" id="formOverlay">
-  <div class="modal sheet" id="formSheet">
-    <div class="form-paper" id="formBody"></div>
-    <div class="form-actions modal-actions">
-      <button class="btn btn-ghost" id="formClose">關閉</button>
-      <button class="btn btn-primary" id="formSave">儲存</button>
-      <button class="btn btn-ghost" id="formSend" style="display:none">送督導</button>
-      <button class="btn btn-ghost" id="formPrint">列印 / PDF</button>
-    </div>
+<!-- 主畫面 -->
+<div id="app" class="wrap hidden">
+  <header class="top">
+    <h1>EMTP 醫院實習紀錄</h1>
+    <span class="who"><span id="who"></span> · <a onclick="logout()" style="color:#fff;text-decoration:underline;cursor:pointer">登出</a></span>
+  </header>
+
+  <div class="tabs">
+    <button id="tab-fill" class="on" onclick="switchTab('fill')">填寫紀錄</button>
+    <button id="tab-query" onclick="switchTab('query')">查詢學員</button>
+    <button id="tab-admin" class="hidden" onclick="switchTab('admin')">管理面板</button>
   </div>
+
+  <section id="view-fill">
+    <div class="card">
+      <h2>基本資料</h2>
+      <label class="fld">學員</label>
+      <select id="f-student"><option value="">載入中…</option></select>
+      <div class="row2">
+        <div><label class="fld">日期</label><input id="f-date" type="date"></div>
+        <div><label class="fld">時段</label>
+          <select id="f-slot"><option>白班 08:00–14:00</option><option>晚班 16:00–22:00</option><option>全天候</option><option>其他</option></select>
+        </div>
+      </div>
+      <label class="fld">當日輪值崗位（可複選）</label>
+      <div class="chips" id="f-stations"></div>
+    </div>
+
+    <div class="card">
+      <h2>能力項目（點選本次達到的等級）</h2>
+      <div class="hint" style="margin:0 0 10px">P1 模擬・P2 觀摩・P3 指導下・P4 獨立・P5 多次獨立；未進行請留「—」。</div>
+      <div id="f-items"></div>
+    </div>
+
+    <div class="card">
+      <h2>交班與評語</h2>
+      <label class="fld">交班事項（給下一位帶領老師）</label>
+      <div class="chips" id="chips-handover"></div>
+      <textarea id="f-handover" placeholder="點上方標籤即可；要補充再打字"></textarea>
+      <button type="button" class="more-btn" id="more-btn" onclick="toggleMore()">＋ 給學員的回饋／其他（選填）</button>
+      <div id="more-fields" class="hidden">
+        <label class="fld">良好表現（學員看得到）</label>
+        <div class="chips" id="chips-good"></div>
+        <textarea id="f-good"></textarea>
+        <label class="fld">待加強／下次重點（學員看得到）</label>
+        <div class="chips" id="chips-improve"></div>
+        <textarea id="f-improve"></textarea>
+        <label class="fld">特殊事件／病安提醒（學員看不到）</label>
+        <div class="chips" id="chips-event"></div>
+        <textarea id="f-event"></textarea>
+      </div>
+    </div>
+    <button class="btn" onclick="submitRecord()">送出紀錄</button>
+  </section>
+
+  <section id="view-query" class="hidden">
+    <div class="card">
+      <h2>選擇學員</h2>
+      <select id="q-student"><option value="">載入中…</option></select>
+      <button class="btn ghost" style="margin-top:12px" onclick="loadStudent()">查詢</button>
+    </div>
+    <div id="q-result"></div>
+  </section>
+
+  <section id="view-admin" class="hidden"><div id="admin-result"><div class="card">載入中…</div></div></section>
+
+  <section id="view-self" class="hidden"><div id="self-result"></div></section>
 </div>
 
 <div class="toast" id="toast"></div>
-<div id="printDoc"></div>
 
 <script>
-/* ===================================================================
-   示範資料：上線時 → 名單匯入 73 人、日期由管理頁設定、
-   bookings 改由後端（GAS+Sheets 或 Firebase）同步並負責「鎖定」與「寄信」
-=================================================================== */
-const SHIFTS=[
-  {key:'night',cls:'night',label:'大夜',win:'08:30–09:30',times:['08:30','08:45','09:00','09:15']},
-  {key:'eve',  cls:'eve',  label:'小夜',win:'14:30–15:30',times:['14:30','14:45','15:00','15:15']},
-  {key:'day',  cls:'day-s',label:'白班',win:'16:30–17:30',times:['16:30','16:45','17:00','17:15']},
+/* ===== 設定 ===== */
+const API = 'https://script.google.com/macros/s/AKfycbxJKzce8gm-crZvjkO3f79wJFw2SosqEnZYY8bmhoMAHFbynoaEsysJG09mO0obhgi6/exec';
+
+// 護理 8 單元 / 18 項目（id 與順序需與 Code.gs 的 ITEMS 一致）
+// type: op=操作型(目標P4)  read=判讀型(P3)  know=認識型(P3)  adv=⚠️進階段(P3)
+const ITEMS = [
+  {id:'a1', unit:'病患評估與檢傷', name:'初評與檢傷（意識/GCS、病史、檢傷分級）', type:'op'},
+  {id:'a2', unit:'病患評估與檢傷', name:'理學辨識（呼吸音、灌流/發紺）', type:'read'},
+  {id:'b1', unit:'基礎監測與量測', name:'生命徵象與血糖測量', type:'op'},
+  {id:'b2', unit:'基礎監測與量測', name:'監測儀器操作（心電監測、監視器、輸液幫浦）', type:'op'},
+  {id:'c1', unit:'無菌與感染防護', name:'無菌技術與感染防護（含針扎預防）', type:'op'},
+  {id:'d1', unit:'氧氣與呼吸道照護', name:'氧氣給予與給氧後評估', type:'op'},
+  {id:'d2', unit:'氧氣與呼吸道照護', name:'痰液抽吸（一般/插管病患）', type:'op'},
+  {id:'d3', unit:'氧氣與呼吸道照護', name:'氣道器械認識與插管後固定協助 ⚠️', type:'adv'},
+  {id:'e1', unit:'循環通路與用藥', name:'靜脈管路建立（IV）', type:'op'},
+  {id:'e2', unit:'循環通路與用藥', name:'急救藥物與輸液認識', type:'know'},
+  {id:'f1', unit:'心律與電擊', name:'心律監測判讀（基礎）', type:'read'},
+  {id:'f2', unit:'心律與電擊', name:'經皮節律器／去顫器操作 ⚠️', type:'adv'},
+  {id:'g1', unit:'創傷處置', name:'出血控制與肢體固定', type:'op'},
+  {id:'g2', unit:'創傷處置', name:'傷口清洗消毒包紮、燒燙傷初步處理', type:'op'},
+  {id:'g3', unit:'創傷處置', name:'脊椎/頸椎固定與創傷初/次級評估', type:'op'},
+  {id:'h1', unit:'特殊情境與安全', name:'躁動/暴力安撫與約束', type:'op'},
+  {id:'h2', unit:'特殊情境與安全', name:'家暴/性侵/兒虐辨識與通報', type:'know'},
+  {id:'h3', unit:'特殊情境與安全', name:'病人搬運與院內轉送', type:'op'}
 ];
-const SHIFT_BY=Object.fromEntries(SHIFTS.map(s=>[s.key,s]));
+const STATIONS = ['檢傷站','急救／重症區','注射治療區','監測／心電圖','觀察區'];
+// 交班/評語的制式標籤（點選即填入對應欄位；要自訂仍可打字）
+const PRESETS = {
+  'f-handover': ['無特殊建議','進度正常','表現良好','需加強(見待加強)','請延續觀察','已提醒病安'],
+  'f-good':     ['主動積極','操作確實','評估完整','溝通清楚','學習態度佳','病安意識佳'],
+  'f-improve':  ['技術熟練度','評估完整性','用藥/劑量概念','團隊溝通','主動性','時間掌握'],
+  'f-event':    ['無','針扎/暴露','用藥疑慮','跌倒','衝突/暴力','需通報事件']
+};
+const UNITS = [];
+ITEMS.forEach(function(it){ if(UNITS.indexOf(it.unit)<0) UNITS.push(it.unit); });
+function targetOf(type){ return type==='op' ? 4 : 3; }  // 操作型目標 P4，其餘 P3
 
-// 職類代碼 → 顯示名稱（roster 的 role 欄存代碼）
-const ROLES={ HN:'護理長', AHN:'副護理長', leader:'小組長', rn:'護理師',
-              tech:'急診技術員', an:'急診助理員', clerk:'事務員' };
-const roleLabel=c=>ROLES[c]||c;
-const ROLE_ORDER=['HN','AHN','leader','rn','tech','an','clerk'];
-
-/* ★★★ 連線設定 ★★★
-   貼上你部署 Apps Script 後拿到的 /exec 網址，預約頁就會連到你的 Google Sheet。
-   例：const API_URL='https://script.google.com/macros/s/AKfycb..../exec';
-   留空白則顯示下方示範資料（不連後端）。 */
-const API_URL='https://script.google.com/macros/s/AKfycbzH-fwi4ccoL_nXj70IiYRzXdfuXfe_c4qfkxb4-YeXKjr_Gwc8PMvbedtwTAJ0Sh4/exec';
-
-// 執行期資料（連線後由後端覆蓋；空白時用示範資料）
-let ROSTER=[], DAYS=[], ROLE_DIST=[];
-let occupied=new Set();   // 已被佔用的 slotId（不含姓名，給所有人）
-let myslot=null;          // 目前使用者自己的時段
-let myFormStage='';       // 本人考核表狀態（鎖定判斷）
-function empFormLocked(){ return ['reviewed','sent','done'].indexOf(myFormStage)>=0; }
-let adminBookings=null;   // slotId→{name,role}，僅通過管理密碼後取得
-let adminPass='';         // 管理密碼（驗證成功後保存，供輪詢更新）
-let adminLevel='';        // 'view'=小組長以上看名單 / 'admin'=護理長 / 'super'=督導
-let formsList=[];         // 考核表清單（護理長/督導用）
-let cfgDraft=[];          // 開放日期編輯暫存 [{date, shifts:[]}]
-const LIVE = !!API_URL;
-
-function computeRoleDist(){
-  const c={}; ROSTER.forEach(p=>c[p.role]=(c[p.role]||0)+1);
-  ROLE_DIST=ROLE_ORDER.filter(r=>c[r]).map(r=>({role:r,n:c[r]}));
-  Object.keys(c).forEach(r=>{ if(!ROLE_ORDER.includes(r)) ROLE_DIST.push({role:r,n:c[r]}); });
-}
-
-/* ---------- 與後端溝通：GET 讀 / POST 寫（text/plain 免 CORS 預檢） ---------- */
+/* ===== 共用 ===== */
 async function api(payload){
-  let lastErr;
-  for(let attempt=0; attempt<3; attempt++){
-    try{
-      const r = payload
-        ? await fetch(API_URL,{method:'POST', redirect:'follow',
-            headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)})
-        : await fetch(API_URL,{redirect:'follow'});
-      return await r.json();
-    }catch(e){ lastErr=e; await new Promise(res=>setTimeout(res, 600*(attempt+1))); }
-  }
-  throw lastErr;   // 連試3次都失敗才丟出
+  const res = await fetch(API, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
+  return res.json();
 }
-function buildDays(open){               // open:[{date,shift,wd}] → 依日期彙整
-  const map={}, order={night:0,eve:1,day:2};
-  open.forEach(o=>{ if(!map[o.date]) map[o.date]={date:o.date,wd:o.wd,shifts:[]};
-    if(!map[o.date].shifts.includes(o.shift)) map[o.date].shifts.push(o.shift); });
-  return Object.values(map).sort((a,b)=>a.date<b.date?-1:1).map(d=>{
-    const [,M,D]=d.date.split('-'); d.d=(+M)+'/'+(+D);
-    d.shifts.sort((x,y)=>order[x]-order[y]); return d; });
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},1900); }
+function todayStr(){ const d=new Date(); const p=function(n){return String(n).padStart(2,'0');}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function fmtDate(d){ try{ return String(d).slice(0,10); }catch(e){ return d; } }
+function esc(s){ return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+/* ===== 角色切換 ===== */
+let ROLE='teacher';
+function setRole(r){
+  ROLE=r;
+  document.getElementById('role-teacher').classList.toggle('on', r==='teacher');
+  document.getElementById('role-student').classList.toggle('on', r==='student');
+  document.getElementById('lg-acc-label').textContent = r==='teacher'?'員工編號':'學號';
+  document.getElementById('lg-acc').placeholder = r==='teacher'?'輸入你的員工編號':'輸入你的學號';
+  document.getElementById('lg-err').textContent='';
 }
-async function loadFromServer(){
-  const bd=$('board'); if(bd && !bd.innerHTML) bd.innerHTML='<div style="text-align:center;color:var(--muted);padding:34px 0">載入中…</div>';
+
+/* ===== 登入 ===== */
+async function doLogin(){
+  const account=document.getElementById('lg-acc').value.trim();
+  const pin=document.getElementById('lg-pin').value.trim();
+  const err=document.getElementById('lg-err'); err.textContent='';
+  if(!account){ err.textContent= ROLE==='teacher'?'請輸入員工編號':'請輸入學號'; return; }
+  if(!pin){ err.textContent='請輸入 PIN'; return; }
+  const action = ROLE==='teacher' ? 'login' : 'studentLogin';
   try{
-    const d=await api();
-    ROSTER=d.roster||[]; DAYS=buildDays(d.open||[]);
-    occupied=new Set(d.occupied||[]);
-    computeRoleDist(); buildUserSelect();
-    if(currentUser) await refreshMine();
-    render();
-  }catch(e){ toast('連線失敗，請重新整理頁面'); }
-}
-async function pollBookings(){
-  try{
-    const d=await api(); occupied=new Set(d.occupied||[]);
-    if(adminMode && adminPass) await fetchAdmin(adminPass,true);
-    render();
-  }catch(e){}
-}
-// 取得「自己」的時段（後端只回傳本人那一格，不洩漏他人）
-async function refreshMine(){
-  if(!LIVE || !currentUser){ return; }
-  try{ const r=await api({action:'mine',name:currentUser.name}); myslot=r.slotId||null; myFormStage=r.stage||''; }catch(e){}
-}
-// 管理檢視：帶密碼向後端要「誰約了哪格」，密碼錯則不給
-async function fetchAdmin(pass,silent){
-  try{
-    const r=await api({action:'admin',pass});
-    if(r&&r.ok){ adminBookings=r.bookings||{}; adminPass=pass; adminMode=true; adminLevel=r.level||'view';
-      $('adminBtn').classList.add('on'); $('adminBtn').textContent='結束檢視';
-      if(!silent){
-        if(adminLevel==='admin'){ cfgDraft=DAYS.map(d=>({date:d.date,shifts:[...d.shifts]})); buildCfgEditor(); }
-        if(adminLevel==='admin'||adminLevel==='super'){ fetchFormsList(); }
-        toast(adminLevel==='admin'?'已進入管理（護理長）':'已進入檢視');
-      }
-      render();
-    } else if(!silent){ toast('密碼錯誤'); }
-  }catch(e){ if(!silent) toast('連線失敗'); }
-}
-
-/* ---------- 開放日期管理（僅護理長 admin） ---------- */
-const SH_DEF=[['night','大夜'],['eve','小夜'],['day','白班']];
-function walkinOptions(){
-  let h='<option value="">— 選擇人員 —</option>';
-  ROLE_DIST.forEach(r=>{ h+=`<optgroup label="${roleLabel(r.role)}">`;
-    ROSTER.filter(p=>p.role===r.role).forEach(p=>{ h+=`<option value="${p.name}">${p.name}</option>`; });
-    h+='</optgroup>'; });
-  return h;
-}
-function buildCfgEditor(){
-  const box=$('cfgBox');
-  if(!(adminMode && adminLevel==='admin')){ box.style.display='none'; box.innerHTML=''; return; }
-  box.style.display='block';
-  cfgDraft.sort((a,b)=>a.date<b.date?-1:1);
-  let rows='<h4>臨時會談（未預約者，直接開表）</h4>'
-    +'<div class="walkin-row"><select id="walkinSel">'+walkinOptions()+'</select>'
-    +'<button class="addbtn" id="walkinOpen">開考核表</button></div>'
-    +'<div class="cfg-note">會談日期自動記今天，不佔用預約格；考核表以姓名儲存，之後可接續、列印。</div>'
-    +'<hr style="border:none;border-top:1px solid var(--hair);margin:16px 0">'
-    +'<h4>開放日期管理</h4>';
-  if(!cfgDraft.length) rows+='<div class="cfg-note">目前沒有開放日期，請於下方新增。</div>';
-  cfgDraft.forEach((d,i)=>{
-    const [,M,D]=d.date.split('-');
-    let chk=SH_DEF.map(([k,lab])=>`<label><input type="checkbox" data-i="${i}" data-sh="${k}" ${d.shifts.includes(k)?'checked':''}>${lab}</label>`).join('');
-    rows+=`<div class="cfg-row"><span class="cdate">${(+M)}/${(+D)}</span>${chk}
-      <button class="del" data-del="${i}">刪除</button></div>`;
-  });
-  rows+=`<div class="cfg-add">
-      <input type="date" id="cfgDate">
-      ${SH_DEF.map(([k,lab])=>`<label><input type="checkbox" class="addsh" data-sh="${k}" checked>${lab}</label>`).join('')}
-      <button class="addbtn" id="cfgAdd">新增日期</button>
-    </div>
-    <div class="cfg-foot">
-      <button class="cfg-save" id="cfgSave">儲存開放設定</button>
-      <button class="cfg-clear" id="cfgClear">清空所有預約</button>
-    </div>
-    <div class="cfg-note">儲存後立即生效（不需重新部署）。每半年新一輪考核：改好日期→儲存→按「清空所有預約」即可重新開放。</div>`;
-  box.innerHTML=rows;
-  // 綁定
-  box.querySelectorAll('.cfg-row input[type=checkbox]').forEach(c=>c.onchange=()=>{
-    const i=+c.dataset.i, k=c.dataset.sh, arr=cfgDraft[i].shifts;
-    if(c.checked){ if(!arr.includes(k)) arr.push(k); } else { cfgDraft[i].shifts=arr.filter(x=>x!==k); }
-  });
-  box.querySelectorAll('.del').forEach(b=>b.onclick=()=>{ cfgDraft.splice(+b.dataset.del,1); buildCfgEditor(); });
-  $('cfgAdd').onclick=()=>{
-    const dt=$('cfgDate').value; if(!dt){ toast('請先選日期'); return; }
-    if(cfgDraft.some(d=>d.date===dt)){ toast('這天已在清單中'); return; }
-    const sh=[...box.querySelectorAll('.addsh')].filter(c=>c.checked).map(c=>c.dataset.sh);
-    if(!sh.length){ toast('至少勾一個班別'); return; }
-    cfgDraft.push({date:dt,shifts:sh}); buildCfgEditor();
-  };
-  $('cfgSave').onclick=saveCfg;
-  $('walkinOpen').onclick=()=>{
-    const nm=$('walkinSel').value, pr=ROSTER.find(p=>p.name===nm);
-    if(!pr){ toast('請先選擇人員'); return; }
-    openForm('walkin_'+new Date().toISOString().slice(0,10), pr, true);
-  };
-  $('cfgClear').onclick=clearAll;
-}
-async function saveCfg(){
-  if(!cfgDraft.length){ toast('開放清單是空的，未儲存（避免清空預約日期）'); return; }
-  const open=[]; cfgDraft.forEach(d=>d.shifts.forEach(sh=>open.push({date:d.date,shift:sh})));
-  const total=open.length*4;
-  if(total<ROSTER.length && !confirm(`目前共 ${total} 格，少於 ${ROSTER.length} 人，可能不夠。仍要儲存嗎？`)) return;
-  try{ const r=await api({action:'setConfig',pass:adminPass,open});
-    if(r&&r.ok){ toast('開放設定已儲存'); await loadFromServer(); buildCfgEditor(); }
-    else toast('儲存失敗（權限？）');
-  }catch(e){ toast('連線失敗'); }
-}
-async function clearAll(){
-  if(!confirm('確定清空「所有人」的預約？名單與開放日期會保留，僅清掉預約紀錄，無法復原。')) return;
-  try{ const r=await api({action:'clearBookings',pass:adminPass});
-    if(r&&r.ok){ myslot=null; toast('已清空所有預約'); await loadFromServer(); if(adminPass) await fetchAdmin(adminPass,true); buildCfgEditor(); }
-    else toast('清空失敗（權限？）');
-  }catch(e){ toast('連線失敗'); }
-}
-
-/* ---------- 示範資料（API_URL 空白時用，方便預覽） ---------- */
-function loadDemo(){
-  const DEMO=[{role:'AHN',n:2},{role:'leader',n:6},{role:'rn',n:52},{role:'tech',n:6},{role:'an',n:4},{role:'clerk',n:3}];
-  const SUR='陳林黃張李王吳劉蔡楊許鄭謝洪曾廖賴周徐蘇'.split('');
-  const GIV=['雅文','佳穎','柏宇','育誠','宛蓉','詩涵','承恩','欣怡','冠廷','家瑜','智明','雅筑','宗翰','庭瑜','志偉','品潔','怡君','建宏','曉琪','俊傑'];
-  ROSTER=[]; let gi=0;
-  DEMO.forEach(r=>{ for(let k=0;k<r.n;k++){
-    const name=SUR[gi%SUR.length]+GIV[Math.floor(gi/SUR.length)%GIV.length];
-    ROSTER.push({name,role:r.role}); gi++; } });
-  DAYS=[['2026-06-23','週二'],['2026-06-24','週三'],['2026-06-25','週四'],
-        ['2026-06-26','週五'],['2026-06-29','週一'],['2026-06-30','週二']]
-    .map(([date,wd])=>{ const [,M,D]=date.split('-'); return {date,wd,d:(+M)+'/'+(+D),shifts:['night','eve','day']}; });
-  occupied=new Set(); adminBookings={}; myslot=null;
-  [['2026-06-23_night_08:30',8],['2026-06-23_day_16:30',15],['2026-06-24_eve_14:45',0],
-   ['2026-06-25_night_09:00',30],['2026-06-26_day_17:15',45],['2026-06-29_eve_15:00',60]]
-   .forEach(([id,idx])=>{ occupied.add(id); adminBookings[id]={...ROSTER[idx]}; });
-  computeRoleDist();
-}
-
-let currentUser=null, adminMode=false;
-let formPerson=null, formSlot=null;   // 目前開啟的考核表屬於誰、哪一格
-let formDirty=false;                  // 表單有未儲存變更
-let sigDates={};                      // 各簽名欄的日期
-let recog=null, recOn=false;          // 語音辨識
-function todayStr(){ const d=new Date(); return d.getFullYear()+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+('0'+d.getDate()).slice(-2); }
-function showSigDate(id){ const el=document.getElementById('date_'+id); if(el) el.textContent=sigDates[id]?('日期：'+sigDates[id]):''; }
-function markSigDate(id){ if(!sigDates[id]){ sigDates[id]=todayStr(); showSigDate(id); } }
-const $=id=>document.getElementById(id);
-const slotId=(date,sk,t)=>`${date}_${sk}_${t}`;
-function myBooking(){ return myslot; }
-function labelOf(id){ const [date,sk,t]=id.split('_');
-  const day=DAYS.find(d=>d.date===date), sh=SHIFTS.find(s=>s.key===sk);
-  return `${day.d} ${day.wd}　${sh.label} ${t}`; }
-
-/* ---------- 行事曆：時間換算（台北 UTC+8，無日光節約） ---------- */
-function slotDateTimes(id){
-  const [date,,t]=id.split('_'); const [Y,M,D]=date.split('-').map(Number);
-  const [h,m]=t.split(':').map(Number);
-  const start=new Date(Date.UTC(Y,M-1,D,h-8,m));      // 台北 → UTC
-  return {start, end:new Date(start.getTime()+15*60000)};
-}
-function fmtUTC(dt){ const p=n=>String(n).padStart(2,'0');
-  return dt.getUTCFullYear()+p(dt.getUTCMonth()+1)+p(dt.getUTCDate())+'T'
-        +p(dt.getUTCHours())+p(dt.getUTCMinutes())+'00Z'; }
-function gcalUrl(id){
-  const {start,end}=slotDateTimes(id);
-  return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
-    +'&text='+encodeURIComponent('考核會談 · '+currentUser.name)
-    +'&dates='+fmtUTC(start)+'/'+fmtUTC(end)
-    +'&details='+encodeURIComponent('職類：'+currentUser.role+'　請攜帶考核單')
-    +'&location='+encodeURIComponent('急診 護理長室');
-}
-function downloadICS(id){
-  const {start,end}=slotDateTimes(id);
-  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//cych//review//TW','BEGIN:VEVENT',
-    'UID:'+id+'-'+Date.now()+'@cych','DTSTAMP:'+fmtUTC(new Date()),
-    'DTSTART:'+fmtUTC(start),'DTEND:'+fmtUTC(end),
-    'SUMMARY:考核會談 · '+currentUser.name,
-    'DESCRIPTION:職類：'+currentUser.role+'　請攜帶考核單',
-    'LOCATION:急診 護理長室','END:VEVENT','END:VCALENDAR'].join('\r\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar;charset=utf-8'}));
-  a.download='考核會談_'+currentUser.name+'.ics'; a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-}
-
-/* ---------- 考核單（瀏覽器列印 / 存 PDF；上線可改 GAS 產 PDF 寄信） ---------- */
-/* ---------- 簽名板：手指 / 觸控筆，免硬體 ---------- */
-function initSignaturePad(id){
-  const canvas=document.getElementById(id);
-  const ratio=Math.max(window.devicePixelRatio||1,1);
-  const rect=canvas.getBoundingClientRect();
-  canvas.width=rect.width*ratio; canvas.height=rect.height*ratio;
-  const ctx=canvas.getContext('2d'); ctx.scale(ratio,ratio);
-  ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#16202B';
-  let drawing=false,last=null; canvas._hasInk=false;
-  const w=rect.width, h=rect.height;
-  const pos=e=>{ const r=canvas.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; };
-  canvas.addEventListener('pointerdown',e=>{ drawing=true; canvas._hasInk=true; formDirty=true; markSigDate(id); last=pos(e); canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener('pointermove',e=>{ if(!drawing)return; const p=pos(e);
-    ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p; e.preventDefault(); });
-  canvas.addEventListener('pointerup',()=>drawing=false);
-  canvas.addEventListener('pointercancel',()=>drawing=false);
-  canvas._clear=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); canvas._hasInk=false; delete sigDates[id]; showSigDate(id); formDirty=true; };
-  canvas._data=()=>{
-    if(!canvas._hasInk) return '';
-    // 縮小＋壓縮：避免簽名 base64 超過 Google 試算表單格 5 萬字上限而存檔失敗
-    const max=300, scale=Math.min(1, max/w), ow=Math.round(w*scale), oh=Math.round(h*scale);
-    const off=document.createElement('canvas'); off.width=ow; off.height=oh;
-    const octx=off.getContext('2d'); octx.fillStyle='#fff'; octx.fillRect(0,0,ow,oh);
-    octx.drawImage(canvas,0,0,ow,oh);
-    return off.toDataURL('image/jpeg',0.7);
-  };
-  canvas._load=url=>{ const img=new Image(); img.onload=()=>{ ctx.drawImage(img,0,0,w,h); canvas._hasInk=true; }; img.src=url; };
-}
-function sigData(id){ const c=document.getElementById(id); return (c&&c._data)?c._data():''; }
-function loadSig(id,url){ const c=document.getElementById(id); if(url&&c&&c._load) c._load(url); }
-
-/* ===================================================================
-   護理師考核表（真實配分，取自上傳表單 2025-06-11(4修)）
-   其他職類結構相同，待此份確認後依樣複製
-=================================================================== */
-const FORMS={
- rn:{ title:'護理師（士）考核表', cats:[
-  {name:'臨床業務',full:55,groups:[
-    {sub:'病人照護',items:[
-      {t:'能正確執行三班病人照護及各項業務工作，並依科室需求配合主管調動，協助其它單位。',p:10},
-      {t:'能與醫療團隊合作與討論提升病人照護品質。',p:5},
-      {t:'確實依循相關作業標準書執行臨床病人照護。',p:5},
-    ]},
-    {sub:'臨床各項品質',items:[
-      {t:'通過單位各項測試（含筆試、口試或技術考），未達閾值時能主動找評核者複評並通過。',p:5},
-      {t:'參與護理部及科室內品質推動、教學活動及相關會議。',p:5},
-      {t:'配合護理部進階制度，完成該年資應進階之職級，並參與相關職級業務。',p:5},
-      {t:'正確完成病歷書寫規範（如護理記錄、評估表單等）。',p:5},
-      {t:'依規定正確完成點班並追蹤異常狀況並紀錄，妥善管理財產避免遺失或不當損傷。',p:5},
-      {t:'落實成本管控，遵循科室物品使用管理規範，並每日正確完成計價。',p:5},
-      {t:'遵守 6S 原則，下班前能完成整理並清潔工作車或管轄環境。',p:5},
-    ]},
-  ]},
-  {name:'敬業態度',full:25,groups:[
-    {items:[
-      {t:'遵守醫院出勤原則（準時上下班、刷卡、請假、配戴識別證…）。',p:10},
-      {t:'遵守單位排派班原則。',p:5},
-      {t:'依規定或需要出席相關會議與活動。',p:2},
-      {t:'服裝儀容合乎規定。',p:2},
-      {t:'配合主管執行單位各小組運作及完成臨時交辦業務，年度計畫如期完成。',p:2},
-      {t:'對主管或同儕態度合宜。',p:4},
-      {note:'未依進度完成 PGYN 手冊者，敬業態度得分為 0。'},
-    ]},
-  ]},
-  {name:'教與學',full:14,groups:[
-    {items:[
-      {t:'參加委員會、品質改善活動、夜護、小組長、當班 L 或幹部等職務。',p:2},
-      {t:'在職教育時數依規定完成。',p:2},
-      {t:'參與教學（積極投入院內外教學活動）。',p:2},
-      {t:'帶新人，每人加 2 分。',p:2},
-      {t:'能依任務完成工作（如 PGYN 學員、臨床教師如期協助完成手冊…）。',p:2},
-      {t:'學術報告送院內或學會審查。',p:2},
-      {t:'輔導人員完成學術報告並送審。',p:2},
-    ]},
-  ]},
-  {name:'主管加分',full:6,groups:[
-    {items:[
-      {t:'家屬指名讚美每次加 1 分，最多加 2 分。',p:6},
-      {t:'通過外部稽核者，每次加 2 分。',p:0},
-      {t:'參與科室醫院評鑑之準備。',p:0},
-      {t:'其他：',p:0},
-    ]},
-  ]},
-]},
- AHN:{ title:'副護理長考核表', cats:[
-  {name:'臨床業務',full:50,groups:[{items:[
-   {t:'配合護理長領導理念、目標、計畫活動，共同推動科室護理相關業務。',p:5},
-   {t:'按計畫執行品質監測，業務各項報表與作業如期繳交。',p:5},
-   {t:'推動與督導科系之教研業務與訓練；每半年評值各業務成效（年度計畫、實習學生、PGYN、學術與教研）、檢討分析與改善。',p:5},
-   {t:'協助護理長排班、分配及彈性調派工作，達到合理人力運作。',p:5},
-   {t:'妥善管理財產避免遺失或不當損傷。',p:5},
-   {t:'與醫療團隊合作與討論提升病人照護品質。',p:5},
-   {t:'業務訊息上通下達，隨時與護理長保持聯繫，發揮管理效能與效率。',p:5},
-   {t:'帶領團隊獲得病人及家屬的認同。',p:5},
-   {t:'單位異常事件，督促單位及協同護理長依「異常事件通報流程」通報並輔導改善。',p:5},
-   {t:'協助收集並分析相關教研趨勢與發展，提供建議與參考。',p:5},
-  ]}]},
-  {name:'敬業態度',full:25,groups:[{items:[
-   {t:'遵守醫院出勤原則（準時上下班、刷卡、請假、配戴識別證…）。',p:10},
-   {t:'依規定或需要出席相關會議及院方活動，並帶動單位人員參與。',p:2},
-   {t:'配合與推動業務需要調派或支援。',p:3},
-   {t:'服裝儀容合乎規定。',p:2},
-   {t:'積極學習行政事務。',p:4},
-   {t:'參與部內小組運作，年度計畫如期完成。',p:2},
-   {t:'對主管或同儕態度合宜。',p:2},
-  ]}]},
-  {name:'教與學（上限15）',full:15,groups:[{items:[
-   {t:'能指導單位人員知能發展，並有具體成效。',p:2},
-   {t:'參與教學（積極投入院內外各種教學或研發等活動）。',p:2},
-   {t:'參加科室品管圈（QCC）（輔導員、圈長最多加4分，圈員2分）。',p:4},
-   {t:'各單位教學品質成效佳（如 PBL、EBN、IPP、IPE、個案討論等）。',p:2},
-   {t:'個人學術與研究寫作案發表且具成效（依進度）。',p:5},
-   {t:'個人教學、進階、研究推展具成效。',p:5},
-   {t:'創新與發表相關業務之推展與配搭成效。',p:5},
-  ]}]},
-  {name:'指標業務',full:10,groups:[{items:[
-   {t:'主動參與並完成護理部發展重點業務，且每半年具有成效。',p:10},
-   {t:'病人／家屬指名讚美每次加1分，最多加2分。',p:0},
-   {t:'於護理長休假時，代理其職務。',p:0},
-   {t:'其他：',p:0},
-  ]}]},
- ]},
- leader:{ title:'小組長考核表', cats:[
-  {name:'臨床業務',full:50,groups:[{items:[
-   {t:'配合護理長領導理念、目標、計畫活動，共同推動科室護理相關業務。',p:3},
-   {t:'直接照顧病人，依標準完成每日護理項目。',p:3},
-   {t:'每日協助臨床護理人員處理臨床護理問題，安排三班人員護理個案。',p:4},
-   {t:'業務各項報表與作業如期繳交。',p:4},
-   {t:'按計畫執行品質監測。',p:4},
-   {t:'協助相關技術與教育訓練。',p:4},
-   {t:'有效運用人力。',p:4},
-   {t:'妥善管理財產避免遺失或不當損傷。',p:4},
-   {t:'與醫療團隊合作與討論提升病人照護品質。',p:4},
-   {t:'領導能上通下達。',p:4},
-   {t:'帶領團隊獲得病人及家屬的認同。',p:4},
-   {t:'參加科室品管圈（QCC）（輔導員、圈長最多加4分，圈員2分）。',p:4},
-   {t:'如期且正確完成交辦事務。',p:4},
-  ]}]},
-  {name:'敬業態度',full:35,groups:[{items:[
-   {t:'遵守醫院出勤原則（準時上下班、刷卡、請假、配戴識別證…）。',p:10},
-   {t:'依規定或需要出席相關會議及院方活動，並帶動單位人員參與。',p:4},
-   {t:'配合與推動業務需要調派或支援。',p:4},
-   {t:'積極處理臨床問題。',p:4},
-   {t:'服裝儀容合乎規定。',p:5},
-   {t:'參與部內小組運作，年度計畫如期完成。',p:4},
-   {t:'對主管或同儕態度合宜。',p:4},
-  ]}]},
-  {name:'教與學',full:5,groups:[{items:[
-   {t:'能指導單位人員知能發展，並有具體成效。',p:2},
-   {t:'帶新人參與教學（含實習學生）。',p:3},
-  ]}]},
-  {name:'主管加分',full:10,groups:[{items:[
-   {t:'家屬指名讚美每次加1分，最多加2分。',p:10},
-   {t:'配合業務調班（依程度加分）。',p:0},
-   {t:'負責批價扣庫，並能維持業務運作。',p:0},
-   {t:'帶新人並使能獨立上線。',p:0},
-   {t:'其他：',p:0},
-  ]}]},
- ]},
- tech:{ title:'急診技術員考核表', cats:[
-  {name:'臨床業務',full:50,groups:[{items:[
-   {t:'能正確執行各項業務。',p:8},
-   {t:'服務態度、問題處理能力，獲得病人及家屬的認同。',p:8},
-   {t:'能與醫療團隊合作與討論提升病人照護品質。',p:7},
-   {t:'醫療團隊對執行業務之滿意。',p:6},
-   {t:'通過單位各項測試（含筆試、口試或技術考）。',p:5},
-   {t:'依規定時間點正確完成點班並追蹤異常狀況及紀錄。',p:5},
-   {t:'妥善管理財產避免遺失或不當損傷。',p:6},
-   {t:'參與單位各股運作，年度計畫如期完成。',p:5},
-  ]}]},
-  {name:'敬業態度',full:30,groups:[{items:[
-   {t:'遵守醫院出勤原則（準時上下班、刷卡、請假、配戴識別證…）。',p:4},
-   {t:'遵守單位排派班原則。',p:4},
-   {t:'依規定或需要出席相關會議與活動。',p:4},
-   {t:'配合業務需要調派或支援。',p:4},
-   {t:'服裝儀容合乎規定。',p:4},
-   {t:'對主管或同儕態度合宜。',p:3},
-   {t:'執行及推動上級交辦之業務。',p:4},
-   {t:'參與單位改善計畫。',p:3},
-  ]}]},
-  {name:'教與學',full:10,groups:[{items:[
-   {t:'每年參與並完成全院規範之基本課程時數。',p:4},
-   {t:'主動學習，發現問題並提出改善建議。',p:3},
-   {t:'帶新人。',p:3},
-  ]}]},
-  {name:'主管加分',full:10,groups:[{items:[
-   {t:'主動發現問題或協助問題改善。',p:10},
-   {t:'家屬指名讚美每次加2分，最多加6分。',p:0},
-   {t:'以身作則，常帶笑臉。',p:0},
-   {note:'加分項目請簡略說明。'},
-  ]}]},
- ]},
- an:{ title:'急診助理員考核表', cats:[
-  {name:'臨床業務',full:50,groups:[{items:[
-   {t:'正確執行工作業務並確實遵守工作規範。',p:5},
-   {t:'正確執行各種材料物品之領用、借用、歸還與點收。',p:5},
-   {t:'醫療團隊對執行業務之滿意度。',p:5},
-   {t:'正確執行庫房及耗材的管理及維護庫房區整潔。',p:7},
-   {t:'妥善管理財產避免遺失或不當損傷。',p:5},
-   {t:'能正確執行點班並完成物品追蹤。',p:8},
-   {t:'主動發現問題，並交班或告知主管。',p:5},
-   {t:'正確且如期完成主管交辦事務。',p:5},
-   {t:'對決策後之事項能配合遵循。',p:5},
-  ]}]},
-  {name:'敬業態度',full:30,groups:[{items:[
-   {t:'遵守醫院出勤原則（準時上下班、刷卡、請假、配戴識別證…）。',p:5},
-   {t:'依規定或需要出席相關會議與活動。',p:5},
-   {t:'遵守單位排派班原則。',p:5},
-   {t:'配合業務需要調派或支援。',p:5},
-   {t:'對主管或同儕態度合宜。',p:5},
-   {t:'服裝儀容合乎規範。',p:5},
-  ]}]},
-  {name:'教與學',full:10,groups:[{items:[
-   {t:'完成全院規範之基本課程時數。',p:7},
-   {t:'帶領新人。',p:3},
-  ]}]},
-  {name:'主管加分',full:10,groups:[{items:[
-   {t:'笑容可掬服務態度。',p:10},
-   {t:'主動協助業務進展及發現問題並提出改善。',p:0},
-   {t:'病人或家屬對助理員讚美。',p:0},
-   {t:'互助合作。',p:0},
-   {note:'加分項目請簡略說明。'},
-  ]}]},
- ]},
- clerk:{ title:'急診事務員考核表', cats:[
-  {name:'臨床業務',full:50,groups:[{items:[
-   {t:'遵守院內工作規則與決策事項。',p:5},
-   {t:'執行業務時，未因個人因素被申訴。',p:5},
-   {t:'各式報表如期繳交。',p:10},
-   {t:'主動協助內外部顧客辦理部內事務。',p:5},
-   {t:'財產控管未異常。',p:5},
-   {t:'如期協助各式活動、會議舉行。',p:5},
-   {t:'主動發現問題並提出改善辦法。',p:5},
-   {t:'如期且正確完成交辦事務。',p:10},
-  ]}]},
-  {name:'敬業態度',full:30,groups:[{items:[
-   {t:'遵守醫院出勤原則（準時上下班、刷卡、請假、配戴識別證…）。',p:10},
-   {t:'依規定或需要，出席相關會議與活動。',p:5},
-   {t:'配合單位業務派班且態度良好。',p:5},
-   {t:'正式班表公告後，能依班表出勤。',p:5},
-   {t:'服裝儀容整潔。',p:5},
-   {note:'若發生曠班或未依規定誠實通報加減OT情節重大者，敬業態度得分為0。'},
-  ]}]},
-  {name:'職務貢獻（10+）',full:10,groups:[{items:[
-   {t:'如期完成院內外在職必修課程。',p:4},
-   {t:'參加科室品管圈（QCC 圈員2分）。',p:3},
-   {t:'各項會議資料與紀錄正確完整。',p:3},
-  ]}]},
-  {name:'主管加分',full:10,groups:[{items:[
-   {t:'配合業務調班（依程度加分）。',p:10},
-   {t:'病人／家屬／同儕指名讚美每次加1分，最多加3分。',p:0},
-   {t:'業務精實、簡化作業流程。',p:0},
-   {t:'其他：',p:0},
-  ]}]},
- ]},
- HN:{ title:'護理長考核表', cats:[
-  {name:'臨床業務管理',full:50,groups:[{items:[
-   {t:'業務各項報表與作業如期繳交，並有成效檢討分析與改進。',p:8},
-   {t:'制定並定期監測單位之照護品質（含查核病歷），並有審核結果。',p:8},
-   {t:'合理管控單位人力、材料成本。',p:7},
-   {t:'每半年與單位人員績效考核面談（需有紀錄）至少一次。',p:7},
-   {t:'與醫療團隊討論困難照護病人，參與床邊教學或指導，提升照護品質。',p:7},
-   {t:'護士、護理師能力受醫療團隊、病人及家屬肯定。',p:7},
-   {t:'領導能上通下達。',p:6},
-  ]}]},
-  {name:'敬業態度',full:20,groups:[{items:[
-   {t:'遵守醫院出勤原則（準時上下班、刷卡、請假、配戴識別證…）。',p:3},
-   {t:'依規定或需要出席相關會議及院方活動，並帶動單位人員參與。',p:3},
-   {t:'配合與推動業務需要調派或支援。',p:4},
-   {t:'服裝儀容合乎規定。',p:3},
-   {t:'參與部內各小組運作，年度計畫如期完成。',p:4},
-   {t:'對主管或同儕態度合宜。',p:3},
-  ]}]},
-  {name:'教與學',full:10,groups:[{items:[
-   {t:'能依單位教學、培訓計畫執行，促進單位人員知能發展。',p:2},
-   {t:'吸引並留住優秀人才：能辨認優秀人才並提供其發展的環境。',p:4},
-   {t:'持續學習（積極主動參與院內外研習課程或在職進修等）。',p:2},
-   {t:'促進單位護理進階成效與學術能力成長。',p:2},
-  ]}]},
-  {name:'護理站管理',full:10,groups:[{items:[
-   {t:'能維持護理站、討論室、倉庫等環境整潔及護理站內環境安寧。',p:3},
-   {t:'能主動巡視病房，發現問題並尋求解決。',p:2},
-   {t:'能主動促進科內及科際間和睦，並有成效。',p:3},
-   {t:'應監督單位財務流向合宜（出入流向不明查證屬實者，考核第四區，並依人事規章辦理）。',p:2},
-  ]}]},
-  {name:'指標業務（加分，上限10）',full:10,groups:[{items:[
-   {t:'工作計畫較預定進度超前，充分達成計畫目標，成績卓著。',p:0},
-   {t:'簡化工作流程，提升增進工作效能。',p:0},
-   {t:'發揮團隊提升服務品質。',p:0},
-   {t:'主動跨單位指導同仁，傳授知識、經驗、技能等。',p:0},
-   {t:'單位人員參與病房會議或活動出席狀況良好。',p:0},
-   {t:'特殊貢獻。',p:0},
-   {t:'擔任委員會主席或執秘（組長3分、副組長或執秘2分）。',p:0},
-   {t:'其他：',p:0},
-  ]}]},
-  {name:'業務貢獻（督導評分，20分）',full:20,groups:[{items:[
-   {t:'品管業務成效。',p:9},
-   {t:'學術寫作與發表成效。',p:5},
-   {t:'教學品質與成效。',p:4},
-   {t:'護理主管加分。',p:2},
-  ]}]},
- ]},
-};
-let formStage=1, activeForm=null; // 1=員工自評  2=主管評核
-
-function buildScoreTable(form){
-  const totalFull=form.cats.reduce((a,c)=>a+c.full,0); let ki=0;
-  let html='<table class="score-table"><colgroup><col class="tw"><col class="cw"><col class="iw"><col class="iw"></colgroup>'
-    +'<thead><tr><th>考核項目</th><th>配分</th><th>自評</th><th class="supcol">主管<br>評核</th></tr></thead><tbody>';
-  form.cats.forEach((c,ci)=>{
-    html+=`<tr class="cat"><td>${c.name}</td><td class="c">${c.full}</td><td class="c"></td><td class="c supcol"></td></tr>`;
-    c.groups.forEach(g=>{
-      if(g.sub) html+=`<tr class="subh"><td colspan="4">${g.sub}</td></tr>`;
-      let n=0;
-      g.items.forEach(it=>{
-        if(it.note){ html+=`<tr class="note-row"><td colspan="4">※ ${it.note}</td></tr>`; return; }
-        n++;
-        const mx=it.p>0?it.p:c.full; const key=ci+'-'+(ki++);
-        html+=`<tr><td>${n}. ${it.t}</td><td class="c">${it.p>0?it.p:'—'}</td>
-          <td><input class="score-inp self" data-cat="${ci}" data-key="${key}" type="number" min="0" max="${mx}" inputmode="numeric"></td>
-          <td class="supcol"><input class="score-inp sup"  data-cat="${ci}" data-key="${key}" type="number" min="0" max="${mx}" inputmode="numeric"></td></tr>`;
-      });
-    });
-    html+=`<tr class="subtotal"><td class="lbl">${c.name} 小計</td><td>${c.full}</td>
-      <td id="catself${ci}">0</td><td class="supcol" id="catsup${ci}">0</td></tr>`;
-  });
-  html+='</tbody></table>'
-    +'<div class="grand"><span>自評總分 <b id="selfTotal">0</b> / ${totalFull}</span>'
-    +'<span class="supcol">主管評核總分 <b id="supTotal">0</b> / ${totalFull}</span></div>';
-  return html;
-}
-function recalcForm(){
-  let st=0,mt=0;
-  (activeForm?activeForm.cats:[]).forEach((c,ci)=>{
-    let s=0,m=0;
-    document.querySelectorAll(`.self[data-cat="${ci}"]`).forEach(i=>s+=(+i.value||0));
-    document.querySelectorAll(`.sup[data-cat="${ci}"]`).forEach(i=>m+=(+i.value||0));
-    s=Math.min(s,c.full); m=Math.min(m,c.full);
-    const se=$('catself'+ci), me=$('catsup'+ci);
-    if(se) se.textContent=s; if(me) me.textContent=m;
-    st+=s; mt+=m;
-  });
-  if($('selfTotal')) $('selfTotal').textContent=st;
-  if($('supTotal'))  $('supTotal').textContent=mt;
-}
-function setStage(s){
-  formStage=s;
-  document.getElementById('tab1').classList.toggle('active',s===1);
-  document.getElementById('tab2').classList.toggle('active',s===2);
-  document.querySelectorAll('.self').forEach(i=>i.disabled=(s!==1));
-  document.querySelectorAll('.sup').forEach(i=>i.disabled=(s!==2));
-  document.getElementById('wrap1').classList.toggle('dim',s!==1); // 受考人簽名僅階段1
-  document.getElementById('wrap2').classList.toggle('dim',s!==2); // 主管簽名僅階段2
-  // 督導(SV)簽名欄：HN表在②欄、其他表在③欄；非督導登入一律鎖住
-  const svWrap=(formPerson&&formPerson.role==='HN')?'wrap2':'wrap3';
-  const svEl=document.getElementById(svWrap);
-  if(svEl){ if(adminLevel==='super') svEl.classList.remove('dim'); else svEl.classList.add('dim'); }
-}
-
-function openForm(id, person, asAdmin){
-  person = person || currentUser;
-  formPerson = person; formSlot = id;
-  const form = FORMS[person.role] || null;
-  activeForm = form;
-  const ev = person.role==='HN' ? '督導' : '護理長';
-  let datePart, timePart;
-  if(String(id).indexOf('walkin')===0){
-    const now=new Date(), WD=['週日','週一','週二','週三','週四','週五','週六'];
-    datePart=(now.getMonth()+1)+'/'+now.getDate()+' '+WD[now.getDay()];
-    timePart='臨時 '+('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2);
-  }else{
-    datePart=labelOf(id).split('　')[0]; timePart=labelOf(id).split('　')[1];
-  }
-  const body = form ? buildScoreTable(form)
-    : `<div class="fp-note">「${roleLabel(person.role)}」考核表範本準備中。</div>`;
-  $('formBody').innerHTML=`
-    <div class="fp-head"><div class="org">嘉義基督教醫院　急診　護理部</div>
-      <div class="ttl">${form?form.title:roleLabel(person.role)+'考核表'}</div></div>
-    <div class="fp-meta">
-      <div><span>姓名</span>${person.name}</div>
-      <div><span>職類</span>${roleLabel(person.role)}</div>
-      <div><span>單位</span>急診</div>
-      <div><span>會談日期</span>${datePart}（${timePart}）</div>
-    </div>
-    <div class="stage-tabs no-print">
-      <button class="stage-tab active" id="tab1">① 員工自評<small>本人填寫＋本人簽名</small></button>
-      <button class="stage-tab supcol" id="tab2">② 主管評核<small>${ev}填寫＋${ev}簽名</small></button>
-    </div>
-    ${body}
-    <div class="fp-block"><div class="lbl">加分／其他事項備註</div>
-      <textarea class="remark-area" placeholder="記錄加分或其他事項原因，例如：家屬指名讚美 2 次、通過外部稽核、帶新人獨立上線、擔任委員會執秘…"></textarea></div>
-    <div class="fp-block"><div class="lbl">雙向回饋<button type="button" class="mic-btn no-print" id="micBtn">🎤 語音輸入</button></div>
-      <textarea class="fb-area" placeholder="可手動輸入、按「語音輸入」用說的，或點下方常用片語。"></textarea>
-      <div class="phrase-row no-print" id="phraseRow"></div></div>
-    <div class="fp-note no-print">簽名：受考人於①簽、${ev}於②簽、上一級主管（督導）於③簽。可用手指或觸控筆，簽錯按清除；簽下後會自動記今天日期。</div>
-    <div class="fp-sign-grid">
-      <div class="sig sig-wrap" id="wrap1"><div class="sig-cap">受考人簽名</div>
-        <canvas class="sig-pad" id="sig1"></canvas>
-        <div class="sig-foot"><span class="sig-date" id="date_sig1"></span><button class="sig-clear no-print" data-pad="sig1">清除</button></div></div>
-      <div class="sig sig-wrap" id="wrap2"><div class="sig-cap">單位主管（${ev}）</div>
-        <canvas class="sig-pad" id="sig2"></canvas>
-        <div class="sig-foot"><span class="sig-date" id="date_sig2"></span><button class="sig-clear no-print" data-pad="sig2">清除</button></div></div>
-      <div class="sig sig-wrap" id="wrap3"><div class="sig-cap">單位上一級主管（${person.role==='HN'?'副主任':'督導'}）</div>
-        <canvas class="sig-pad" id="sig3"></canvas>
-        <div class="sig-foot"><span class="sig-date" id="date_sig3"></span><button class="sig-clear no-print" data-pad="sig3">清除</button></div></div>
-    </div>`;
-  $('formOverlay').classList.add('show');
-  initSignaturePad('sig1'); initSignaturePad('sig2'); initSignaturePad('sig3');
-  document.querySelectorAll('.sig-clear').forEach(b=>b.onclick=()=>{
-    const c=document.getElementById(b.dataset.pad); c._clear&&c._clear(); });
-  formDirty=false; sigDates={};
-  if(form) document.querySelectorAll('.score-inp').forEach(i=>i.oninput=()=>{ recalcForm(); formDirty=true; });
-  const fbEl=document.querySelector('.fb-area'); if(fbEl) fbEl.oninput=()=>{ formDirty=true; };
-  const rmEl2=document.querySelector('.remark-area'); if(rmEl2) rmEl2.oninput=()=>{ formDirty=true; };
-  initMic(); renderPhrases();
-  // 員工看不到「主管評核」整欄與該頁籤；只有護理長/督導看得到
-  $('formBody').classList.toggle('hide-sup', !(adminLevel==='admin'||adminLevel==='super'));
-  // 只有護理長（admin）在評核階段才看得到「送督導」
-  const sendBtn=$('formSend'); if(sendBtn) sendBtn.style.display=(adminLevel==='admin')?'inline-block':'none';
-  // 兩階段切換（所有職類都可用）
-  document.getElementById('tab1').onclick=()=>setStage(1);
-  document.getElementById('tab2').onclick=()=>setStage(2);
-  setStage(asAdmin?2:1);   // 員工開＝自評；護理長從管理開＝接續評核
-  // 載入已暫存的內容（自評/評核都會回填）
-  if(LIVE){ api({action:'loadForm',name:person.name}).then(d=>{ if(d&&d.ok) applyForm(d); }).catch(()=>{}); }
-}
-
-/* ---------- 收集 / 套用 / 儲存 考核表 ---------- */
-function collectForm(){
-  const sc={};
-  document.querySelectorAll('.score-inp.self').forEach(i=>{ (sc[i.dataset.key]=sc[i.dataset.key]||{}).self=i.value; });
-  document.querySelectorAll('.score-inp.sup').forEach(i=>{ (sc[i.dataset.key]=sc[i.dataset.key]||{}).sup=i.value; });
-  sc._sigDates=sigDates;
-  sc._remark=(document.querySelector('.remark-area')||{}).value||'';
-  const fb=document.querySelector('.fb-area');
-  return { scores:JSON.stringify(sc), feedback:fb?fb.value:'',
-           sig1:sigData('sig1'), sig2:sigData('sig2'), sig3:sigData('sig3') };
-}
-function applyForm(d){
-  if(d.scores){ let sc={}; try{ sc=JSON.parse(d.scores)||{}; }catch(e){}
-    document.querySelectorAll('.score-inp.self').forEach(i=>{ const v=sc[i.dataset.key]; if(v&&v.self!=null&&v.self!=='') i.value=v.self; });
-    document.querySelectorAll('.score-inp.sup').forEach(i=>{ const v=sc[i.dataset.key]; if(v&&v.sup!=null&&v.sup!=='') i.value=v.sup; });
-    recalcForm();
-  }
-  const fb=document.querySelector('.fb-area'); if(fb&&d.feedback) fb.value=d.feedback;
-  loadSig('sig1',d.sig1); loadSig('sig2',d.sig2); loadSig('sig3',d.sig3);
-  let sc2={}; try{ sc2=JSON.parse(d.scores||'{}')||{}; }catch(e){}
-  if(sc2._sigDates){ sigDates=Object.assign({}, sc2._sigDates); ['sig1','sig2','sig3'].forEach(showSigDate); }
-  const rmEl=document.querySelector('.remark-area'); if(rmEl&&sc2._remark) rmEl.value=sc2._remark;
-  if(d.stage==='self') toast('已載入員工自評，待會談');
-  else if(d.stage==='done') toast('此表已完成（可檢視/列印）');
-}
-function saveForm(targetStage){
-  if(!formPerson){ toast('沒有開啟中的考核表'); return; }
-  const d=collectForm();
-  // 決定狀態與權限模式
-  let stage, mode;
-  if(targetStage){ stage=targetStage; mode=(targetStage==='self')?'self':'sup'; }
-  else if(adminLevel==='super'){ stage='done'; mode='sup'; }        // 督導簽完＝完成
-  else if(adminMode && formStage===2){ stage='reviewed'; mode='sup'; } // 護理長評核暫存
-  else { stage='self'; mode='self'; }                               // 員工自評
-  const score=parseInt(($('supTotal')||{}).textContent)||'';
-  if(!LIVE){ toast('（示範）已模擬儲存'); return; }
-  api({action:'saveForm', name:formPerson.name, role:formPerson.role, slotId:formSlot,
-       stage:stage, mode:mode, pass:adminPass, score:score,
-       scores:d.scores, feedback:d.feedback, sig1:d.sig1, sig2:d.sig2, sig3:d.sig3})
-    .then(r=>{ if(r&&r.ok){ formDirty=false;
-                 toast(stage==='self'?'已暫存，待會談':stage==='reviewed'?'評核已暫存':stage==='sent'?'已送督導':'已儲存（完成）');
-                 if(adminMode) fetchFormsList();
-               } else if(r&&r.reason==='denied') toast('此操作需要對應權限密碼');
-               else toast('儲存失敗，請再試一次'); })
-    .catch(()=>toast('連線失敗，請再試一次'));
-}
-
-/* ---------- 渲染 ---------- */
-function buildUserSelect(){
-  const sel=$('userSelect'); const cur=currentUser?currentUser.name:'';
-  sel.innerHTML='<option value="">— 請選擇 —</option>';
-  ROLE_DIST.forEach(r=>{
-    const og=document.createElement('optgroup'); og.label=`${roleLabel(r.role)}（${r.n}）`;
-    ROSTER.filter(p=>p.role===r.role).forEach(p=>{
-      const o=document.createElement('option'); o.value=p.name; o.textContent=p.name;
-      if(p.name===cur) o.selected=true; og.appendChild(o);
-    }); sel.appendChild(og);
-  });
-}
-function render(){
-  $('roleLine').innerHTML = currentUser ? `職類：<b>${roleLabel(currentUser.role)}</b>` : '';
-  $('userEmail').style.display = currentUser ? 'block' : 'none';
-
-  const st=$('status'), stx=$('statusText'), act=$('actions');
-  st.className='status'; st.querySelectorAll('button').forEach(b=>b.remove());
-  const mine=myBooking();
-  act.className='actions'; act.innerHTML='';
-  if(!currentUser){ st.classList.add('empty'); stx.textContent='尚未選擇姓名'; }
-  else if(!mine){ st.classList.add('none'); stx.textContent='您尚未預約，請點選下方時段';
-    const g=document.createElement('button'); g.className='go-btn'; g.textContent='免預約·直接填表';
-    g.onclick=()=>{ if(empFormLocked()){ toast('考核已進入主管程序，無法開啟'); return; }
-      openForm('walkin_'+new Date().toISOString().slice(0,10), currentUser, false); };
-    st.appendChild(g); }
-  else{
-    st.classList.add('booked'); stx.innerHTML='您的時段：<b>'+labelOf(mine)+'</b>';
-    const c=document.createElement('button'); c.className='mini-cancel'; c.textContent='取消';
-    c.onclick=()=>askCancel(mine); st.appendChild(c);
-    // 完成後的三顆按鈕
-    act.className='actions show';
-    act.innerHTML=`
-      <a class="act-btn" href="${gcalUrl(mine)}" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>加入 Google 行事曆</a>
-      <button class="act-btn" id="icsBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>下載 .ics</button>
-      <button class="act-btn" id="formBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>考核單</button>`;
-    $('icsBtn').onclick=()=>downloadICS(mine);
-    $('formBtn').onclick=()=>openForm(mine);
-  }
-
-  renderAdmin();
-
-  const board=$('board'); board.innerHTML='';
-  let grand=0;
-  DAYS.forEach(day=>{
-    const dayShifts=(day.shifts||['night','eve','day']).map(k=>SHIFT_BY[k]).filter(Boolean);
-    let taken=0; const total=dayShifts.length*4; grand+=total;
-    dayShifts.forEach(sh=>sh.times.forEach(t=>{ if(occupied.has(slotId(day.date,sh.key,t))) taken++; }));
-    const card=document.createElement('div'); card.className='day';
-    card.innerHTML=`<div class="day-head"><span class="day-date">${day.d}</span>
-      <span class="day-wd">${day.wd}</span><span class="day-left">餘 ${total-taken} / ${total}</span></div>`;
-    dayShifts.forEach(sh=>{
-      const block=document.createElement('div'); block.className='shift '+sh.cls;
-      block.innerHTML=`<div class="shift-label"><span class="shift-tag">${sh.label}</span>
-        <span class="shift-win">${sh.win}</span></div>`;
-      const grid=document.createElement('div'); grid.className='slots';
-      sh.times.forEach(t=>{
-        const id=slotId(day.date,sh.key,t);
-        const isMine=(id===myslot);
-        const adminWho=(adminMode&&adminBookings)?adminBookings[id]:null;
-        const taken=occupied.has(id)||!!adminWho;
-        const btn=document.createElement('button'); btn.className='slot';
-        if(isMine){ btn.classList.add('mine'); btn.innerHTML=`${t}<span class="sub">您的時段</span>`; }
-        else if(taken){ btn.classList.add('taken'); btn.innerHTML=`${t}<span class="sub">${adminWho?adminWho.name:'已約'}</span>`; }
-        else{ btn.innerHTML=`${t}<span class="sub">可預約</span>`; }
-        btn.onclick=()=>onSlot(id, taken&&!isMine, isMine); grid.appendChild(btn);
-      });
-      block.appendChild(grid); card.appendChild(block);
-    });
-    board.appendChild(card);
-  });
-
-  const used=occupied.size;
-  $('totalSlots').textContent=grand; $('freeSlots').textContent=grand-used;
-  $('pendingPeople').textContent=ROSTER.length-used;
-}
-
-let formFilter='all', formSearch='';
-async function fetchFormsList(){
-  try{ const r=await api({action:'listForms',pass:adminPass});
-    if(r&&r.ok){ formsList=r.list||[]; renderAdmin(); renderFormsList(); } }catch(e){}
-}
-function renderFormsList(){
-  const box=$('formsBox'); if(!box) return;
-  if(!(adminMode && (adminLevel==='admin'||adminLevel==='super'))){ box.style.display='none'; box.innerHTML=''; return; }
-  box.style.display='block';
-  const cnt={all:formsList.length, self:0, reviewed:0, sent:0, done:0};
-  formsList.forEach(f=>{ if(cnt[f.stage]!=null) cnt[f.stage]++; });
-  const FILTERS=[['all','全部'],['self','待評核'],['reviewed','評核中'],['sent','待督導簽'],['done','已完成']];
-  let h='<h4>考核表（點名字開啟簽核）</h4>';
-  h+='<div class="ffilter">'+FILTERS.map(([k,lab])=>`<button class="fbtn ${formFilter===k?'on':''}" data-f="${k}">${lab} ${cnt[k]||0}</button>`).join('')+'</div>';
-  h+='<input class="fsearch" id="fSearch" placeholder="搜尋姓名…" value="'+String(formSearch).replace(/"/g,'&quot;')+'">';
-  const order={}; ROLE_ORDER.forEach((r,i)=>order[r]=i);
-  const sorted=[...formsList].sort((a,b)=>(order[a.role]-order[b.role])||(a.name<b.name?-1:1));
-  let li='';
-  sorted.forEach(f=>{ li+=`<div class="form-item" data-slot="${f.slotId}" data-name="${f.name}" data-role="${f.role}" data-stage="${f.stage}">
-      <span><b>${f.name}</b> <span style="color:var(--muted)">${roleLabel(f.role)}</span></span>
-      <span class="fstage ${f.stage}">${stageLabel(f.stage)}</span></div>`; });
-  h+='<div id="fListInner">'+(formsList.length?li:'<div class="cfg-note">目前尚無已存的考核表。</div>')+'</div>';
-  box.innerHTML=h;
-  box.querySelectorAll('.fbtn').forEach(b=>b.onclick=()=>{ formFilter=b.dataset.f;
-    box.querySelectorAll('.fbtn').forEach(x=>x.classList.toggle('on',x===b)); applyFormFilter(); });
-  const si=$('fSearch'); if(si) si.oninput=()=>{ formSearch=si.value; applyFormFilter(); };
-  box.querySelectorAll('.form-item').forEach(el=>el.onclick=()=>{
-    if(adminLevel==='super' && el.dataset.stage!=='sent'){ toast('此表尚未送督導，請待護理長評核並送出後再簽'); return; }
-    openForm(el.dataset.slot, {name:el.dataset.name, role:el.dataset.role}, true);
-  });
-  applyFormFilter();
-}
-function applyFormFilter(){
-  const q=String(formSearch).trim();
-  let shown=0;
-  document.querySelectorAll('#formsBox .form-item').forEach(el=>{
-    const okF=(formFilter==='all'||el.dataset.stage===formFilter);
-    const okS=(!q||el.dataset.name.indexOf(q)>=0);
-    const show=okF&&okS; el.style.display=show?'':'none'; if(show) shown++;
-  });
-}
-function stageLabel(st){ return ({self:'待評核',reviewed:'評核中',sent:'待督導簽',done:'已完成'})[st]||'草稿'; }
-function renderAdmin(){
-  const box=$('adminBox'); box.classList.toggle('show',adminMode);
-  if(!adminMode || !adminBookings){ box.innerHTML=''; return; }
-  const booked=new Set(Object.values(adminBookings).map(b=>b.name));
-  let rows='<h4>各職類預約進度</h4>';
-  ROLE_DIST.forEach(r=>{
-    const done=ROSTER.filter(p=>p.role===r.role&&booked.has(p.name)).length;
-    rows+=`<div class="role-row"><span class="role-name">${roleLabel(r.role)}</span>
-      <span class="bar"><span style="width:${Math.round(done/r.n*100)}%"></span></span>
-      <span class="role-num">${done}/${r.n}</span></div>`;
-  });
-  let pend='<div class="pending"><h4>尚未預約</h4>';
-  ROLE_DIST.forEach(r=>{
-    const list=ROSTER.filter(p=>p.role===r.role&&!booked.has(p.name)).map(p=>p.name);
-    if(list.length) pend+=`<div class="grp"><b>${roleLabel(r.role)}</b> <span>(${list.length})：${list.join('、')}</span></div>`;
-  });
-  pend+='</div>';
-  // 成績排名 / 送考核（依主管評核總分，標出各職類前5%）— 僅護理長
-  let rank='';
-  if(adminLevel==='admin'){
-    rank='<div class="pending"><h4>成績排名 · 送考核（各職類前 5%）</h4>';
-    const scored=formsList.filter(f=>f.score!==''&&f.score!=null&&!isNaN(+f.score));
-    if(!scored.length) rank+='<div class="cfg-note">尚無已評分的考核表（需護理長評核並填總分）。</div>';
-    ROLE_ORDER.forEach(role=>{
-      const grp=scored.filter(f=>f.role===role).sort((a,b)=>(+b.score)-(+a.score));
-      if(!grp.length) return;
-      const topN=Math.max(1,Math.ceil(grp.length*0.05));
-      rank+=`<div class="grp" style="margin-top:8px"><b>${roleLabel(role)}</b> <span>（${grp.length} 人，前 5% = ${topN} 位）</span></div>`;
-      grp.forEach((f,idx)=>{
-        const star=idx<topN;
-        rank+=`<div class="form-item" data-slot="${f.slotId}" data-name="${f.name}" data-role="${f.role}" data-stage="${f.stage}">
-          <span>${star?'★ ':''}${idx+1}. <b>${f.name}</b> <span style="color:var(--muted)">${f.score} 分</span></span>
-          <span class="fstage ${star?'done':''}">${star?'送考核':'列印'}</span></div>`;
-      });
-    });
-    rank+='</div>';
-  }
-  box.innerHTML=rows+pend+rank;
-  // 綁定點擊 → 開該人考核表
-  box.querySelectorAll('.form-item').forEach(el=>el.onclick=()=>{
-    if(adminLevel==='super' && el.dataset.stage!=='sent'){
-      toast('此表尚未送督導，請待護理長評核並送出後再簽'); return;
+    const r=await api({action, account, pin});
+    if(!r.ok){ err.textContent=r.error||'登入失敗'; return; }
+    sessionStorage.setItem('emtp_role', ROLE);
+    sessionStorage.setItem('emtp_acc', account);
+    if(r.firstTime) toast('已設定你的 PIN ✓');
+    if(ROLE==='teacher'){
+      sessionStorage.setItem('emtp_teacher', r.name);
+      sessionStorage.setItem('emtp_isadmin', r.role==='admin' ? '1' : '');
+      enterAppTeacher(r.name, r.role);
     }
-    openForm(el.dataset.slot, {name:el.dataset.name, role:el.dataset.role}, true);
+    else { sessionStorage.setItem('emtp_sname', r.name); sessionStorage.setItem('emtp_sid', r.studentId); enterAppStudent(r.name, r.studentId); }
+  }catch(e){ err.textContent='連線失敗，請確認 API 網址'; }
+}
+function logout(){ ['emtp_role','emtp_teacher','emtp_acc','emtp_sname','emtp_sid','emtp_isadmin'].forEach(function(k){sessionStorage.removeItem(k);}); location.reload(); }
+function _showApp(){ document.getElementById('login').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); }
+function enterAppTeacher(name, role){
+  _showApp();
+  document.getElementById('who').textContent=name+(role==='admin'?' 管理者':' 老師');
+  document.querySelector('.tabs').classList.remove('hidden');
+  document.getElementById('tab-admin').classList.toggle('hidden', role!=='admin');
+  document.getElementById('view-self').classList.add('hidden');
+  initForm(); loadStudents(); switchTab('fill');
+}
+function enterAppStudent(name, sid){
+  _showApp();
+  document.getElementById('who').textContent=name+' 學員';
+  document.querySelector('.tabs').classList.add('hidden');
+  document.getElementById('view-fill').classList.add('hidden');
+  document.getElementById('view-query').classList.add('hidden');
+  document.getElementById('view-self').classList.remove('hidden');
+  loadSelf(sid, name);
+}
+async function loadSelf(sid, name){
+  const box=document.getElementById('self-result'); box.innerHTML='<div class="card">載入中…</div>';
+  try{ const r=await api({action:'getStudentRecords', studentId:sid});
+    if(!r.ok){ box.innerHTML='<div class="card">載入失敗</div>'; return; }
+    renderDashboard(r, {container:'self-result', name:name, viewer:'student'});
+  }catch(e){ box.innerHTML='<div class="card">連線失敗</div>'; }
+}
+
+/* ===== 填寫表單 ===== */
+function initForm(){
+  document.getElementById('f-date').value=todayStr();
+  const sBox=document.getElementById('f-stations'); sBox.innerHTML='';
+  STATIONS.forEach(function(s){
+    const l=document.createElement('label'); l.className='chip';
+    l.innerHTML='<input type="checkbox" value="'+s+'"><span>'+s+'</span>';
+    l.querySelector('input').addEventListener('change',function(e){ l.classList.toggle('on', e.target.checked); });
+    sBox.appendChild(l);
+  });
+  const box=document.getElementById('f-items'); box.innerHTML='';
+  UNITS.forEach(function(u){
+    const h=document.createElement('div'); h.className='unit-head'; h.textContent=u; box.appendChild(h);
+    ITEMS.filter(function(it){return it.unit===u;}).forEach(function(it){
+      const row=document.createElement('div'); row.className='item-row';
+      row.innerHTML='<span class="iname">'+it.name+'</span>'+
+        '<select id="it_'+it.id+'" class="sel">'+
+        '<option value="0">—</option><option value="1">P1 模擬</option><option value="2">P2 觀摩</option>'+
+        '<option value="3">P3 指導下</option><option value="4">P4 獨立</option><option value="5">P5 多次獨立</option></select>';
+      box.appendChild(row);
+    });
+  });
+  buildPresets();
+}
+// 建立制式標籤
+function buildPresets(){
+  Object.keys(PRESETS).forEach(function(target){
+    const box=document.getElementById('chips-'+target.slice(2)); // f-handover -> chips-handover
+    box.innerHTML='';
+    PRESETS[target].forEach(function(p){
+      const c=document.createElement('span'); c.className='chip'; c.textContent=p;
+      c.onclick=function(){ chipInto(target, p, c); };
+      box.appendChild(c);
+    });
   });
 }
+// 點標籤 → 切換填入/移除（以「、」分隔），與文字框同步
+function chipInto(targetId, phrase, el){
+  const t=document.getElementById(targetId);
+  let parts = t.value ? t.value.split('、').filter(Boolean) : [];
+  const i = parts.indexOf(phrase);
+  if(i>=0){ parts.splice(i,1); el.classList.remove('on'); }
+  else { parts.push(phrase); el.classList.add('on'); }
+  t.value = parts.join('、');
+}
 
-function onSlot(id,takenByOther,isMine){
-  // 管理檢視（護理長/小組長以上）：點已約格 → 開該人考核表接續評核
-  if(adminMode && adminBookings){
-    if(adminBookings[id]){ openForm(id, adminBookings[id], true); }
-    else toast('此格尚無人預約');
-    return;
-  }
-  if(!currentUser){ toast('請先在上方選擇您的姓名'); return; }
-  if(isMine){
-    if(empFormLocked()){ toast('考核已進入主管程序，無法開啟'); return; }
-    openForm(id, currentUser, false); return;   // 開自己的考核表（自評）
-  }
-  if(takenByOther){ toast('這個時段已被預約，請改選其他'); return; }
-  const mine=myslot;
-  if(mine) confirmBox('更改時段','您已預約 <span class="big">'+labelOf(mine)+'</span><br>要改為 <span class="big">'+labelOf(id)+'</span> 嗎？', ()=>commitBook(id));
-  else     confirmBox('確認預約','確認預約　<span class="big">'+labelOf(id)+'</span>？<br><span style="font-size:13px">送出後此時段即固定為您所有。</span>', ()=>commitBook(id));
+/* ===== 學員名單 ===== */
+let STUDENTS=[];
+async function loadStudents(){
+  try{ const r=await api({action:'listStudents'});
+    if(!r.ok){ toast(r.error||'名單載入失敗'); return; }
+    STUDENTS=r.students||[]; fillStudentSelect('f-student'); fillStudentSelect('q-student');
+  }catch(e){ toast('名單連線失敗'); }
 }
-function commitBook(id){
-  if(LIVE){
-    const email=$('userEmail').value.trim();
-    api({action:'book',slotId:id,name:currentUser.name,role:currentUser.role,email})
-      .then(r=>{
-        if(r&&r.ok){ myslot=id; toast('預約成功 · '+labelOf(id)); pollBookings(); }
-        else if(r&&r.reason==='taken'){ toast('這個時段剛被選走，請改選其他'); pollBookings(); }
-        else if(r&&r.reason==='busy'){ toast('系統忙碌，請再按一次'); }
-        else toast('預約失敗，請再試一次');
-      }).catch(()=>toast('連線失敗，請再試一次'));
-  }else{ // 示範模式
-    if(myslot){ occupied.delete(myslot); if(adminBookings) delete adminBookings[myslot]; }
-    occupied.add(id); if(adminBookings) adminBookings[id]={...currentUser}; myslot=id;
-    render(); toast('預約成功 · '+labelOf(id));
-  }
+function fillStudentSelect(id){
+  const sel=document.getElementById(id); sel.innerHTML='<option value="">請選擇學員</option>';
+  STUDENTS.forEach(function(s){ const o=document.createElement('option'); o.value=s.id;
+    o.textContent=s.name+'（'+s.id+(s.cohort?'・'+s.cohort:'')+'）'; sel.appendChild(o); });
 }
-function askCancel(id){ confirmBox('取消時段','要取消 <span class="big">'+labelOf(id)+'</span> 嗎？取消後此格會重新開放。', ()=>{
-  if(LIVE){ api({action:'cancel',slotId:id,name:currentUser.name})
-    .then(()=>{ myslot=null; toast('已取消預約'); pollBookings(); }).catch(()=>toast('連線失敗，請再試一次')); }
-  else{ occupied.delete(id); if(adminBookings) delete adminBookings[id]; myslot=null; render(); toast('已取消預約'); }
-}, true); }
 
-let okHandler=null;
-function confirmBox(title,html,onOk,danger){
-  $('mTitle').textContent=title; $('mBody').innerHTML=html;
-  const ok=$('mOk'); ok.textContent=danger?'確認取消':'確認';
-  ok.className='btn '+(danger?'btn-danger':'btn-primary');
-  okHandler=onOk; $('overlay').classList.add('show');
+/* ===== 送出 ===== */
+async function submitRecord(){
+  const sid=document.getElementById('f-student').value;
+  if(!sid){ toast('請先選擇學員'); return; }
+  const stu=STUDENTS.find(function(s){return s.id===sid;})||{};
+  const stations=[].slice.call(document.querySelectorAll('#f-stations input:checked')).map(function(c){return c.value;});
+  const items={};
+  ITEMS.forEach(function(it){ items[it.id]=parseInt(document.getElementById('it_'+it.id).value)||0; });
+  const record={ studentId:sid, studentName:stu.name||'', date:document.getElementById('f-date').value,
+    slot:document.getElementById('f-slot').value, teacher:sessionStorage.getItem('emtp_teacher')||'',
+    stations:stations, items:items,
+    good:document.getElementById('f-good').value.trim(), improve:document.getElementById('f-improve').value.trim(),
+    event:document.getElementById('f-event').value.trim(), handover:document.getElementById('f-handover').value.trim() };
+  try{ const r=await api({action:'submitRecord', record});
+    if(r.ok){ toast('已送出 ✓'); resetForm(); } else toast(r.error||'送出失敗');
+  }catch(e){ toast('送出連線失敗'); }
 }
-$('mOk').onclick=()=>{ $('overlay').classList.remove('show'); okHandler&&okHandler(); };
-$('mCancel').onclick=()=>$('overlay').classList.remove('show');
-$('overlay').onclick=e=>{ if(e.target===$('overlay')) $('overlay').classList.remove('show'); };
-$('formClose').onclick=closeForm;
-function buildOfficialPrint(){
-  if(!formPerson) return;
-  const form=activeForm;
-  const selfMap={}, supMap={};
-  document.querySelectorAll('.score-inp.self').forEach(i=>selfMap[i.dataset.key]=i.value||'');
-  document.querySelectorAll('.score-inp.sup').forEach(i=>supMap[i.dataset.key]=i.value||'');
-  const meta=$('formBody').querySelector('.fp-meta');
-  const dateTxt = meta ? (meta.children[3]?meta.children[3].textContent.replace('會談日期',''):'') : '';
-  // 依各職類正式表結構，cat 當第一欄（直書），每項一列，末加小計
-  let rows='';
-  if(form){
-    form.cats.forEach((c,ci)=>{
-      const lines=[];
-      let ki=0;
-      c.groups.forEach(g=>{
-        if(g.sub) lines.push(`<td class="pd-sub" colspan="4">${g.sub}</td>`);
-        g.items.forEach(it=>{
-          if(it.note){ lines.push(`<td class="pd-note" colspan="4">※ ${it.note}</td>`); return; }
-          const key=ci+'-'+(ki++);
-          lines.push(`<td>${it.t}</td><td class="c">${it.p>0?it.p:'—'}</td><td class="c">${selfMap[key]||''}</td><td class="c">${supMap[key]||''}</td>`);
-        });
-      });
-      lines.forEach((ln,idx)=>{
-        rows+= '<tr>' + (idx===0?`<td class="cat" rowspan="${lines.length}">${c.name}（${c.full}）</td>`:'') + ln + '</tr>';
-      });
+function resetForm(){
+  document.getElementById('f-student').value='';
+  ['f-good','f-improve','f-event','f-handover'].forEach(function(id){document.getElementById(id).value='';});
+  document.querySelectorAll('#f-stations input:checked').forEach(function(c){c.checked=false;c.closest('.chip').classList.remove('on');});
+  ITEMS.forEach(function(it){ document.getElementById('it_'+it.id).value='0'; });
+  document.querySelectorAll('#chips-handover .chip.on, #chips-good .chip.on, #chips-improve .chip.on, #chips-event .chip.on').forEach(function(c){ c.classList.remove('on'); });
+  const m=document.getElementById('more-fields');
+  if(m){ m.classList.add('hidden'); document.getElementById('more-btn').textContent='＋ 給學員的回饋／其他（選填）'; }
+}
+function toggleMore(){
+  const m=document.getElementById('more-fields'), b=document.getElementById('more-btn');
+  const nowHidden=m.classList.toggle('hidden');
+  b.textContent = nowHidden ? '＋ 給學員的回饋／其他（選填）' : '− 收起其他欄位';
+}
+
+/* ===== 切換 ===== */
+function switchTab(t){
+  ['fill','query','admin'].forEach(function(x){
+    document.getElementById('tab-'+x).classList.toggle('on', x===t);
+    document.getElementById('view-'+x).classList.toggle('hidden', x!==t);
+  });
+  if(t==='admin') loadAdmin();
+}
+
+/* ===== 查詢（老師）===== */
+async function loadStudent(){
+  const sid=document.getElementById('q-student').value; const box=document.getElementById('q-result');
+  if(!sid){ toast('請選擇學員'); return; }
+  box.innerHTML='<div class="card">查詢中…</div>';
+  try{ const r=await api({action:'getStudentRecords', studentId:sid});
+    if(!r.ok){ box.innerHTML='<div class="card">查詢失敗</div>'; return; }
+    const stu=STUDENTS.find(function(s){return s.id===sid;})||{};
+    renderDashboard(r, {container:'q-result', name:stu.name||r.name, viewer:'teacher'});
+  }catch(e){ box.innerHTML='<div class="card">連線失敗</div>'; }
+}
+
+/* ===== 達成儀表板 ===== */
+function renderDashboard(r, opts){
+  opts=opts||{}; const box=document.getElementById(opts.container||'q-result');
+  const display=opts.name||r.name||'';
+  const att=r.attainment||{};
+  const recList=r.records||[];
+  let totalDone=0; const total=ITEMS.length; const pending=[];
+  let unitsHtml='';
+  UNITS.forEach(function(u){
+    const its=ITEMS.filter(function(it){return it.unit===u;});
+    let doneU=0, rows='';
+    its.forEach(function(it){
+      const mp=att[it.id]||0, tg=targetOf(it.type), done=mp>=tg;
+      if(done){ doneU++; totalDone++; } else pending.push(it.name.replace(' ⚠️',''));
+      const st = mp===0?'r':(done?'g':'y');
+      const lbl = mp===0?'未開始':(done?('已達成 P'+mp):('進行中 P'+mp));
+      rows+='<div class="item-row2"><span class="dot '+st+'"></span><span class="iname2">'+it.name+'</span>'+
+            '<span class="lvl '+st+'">'+lbl+'</span><span class="tgt">目標 P'+tg+'</span></div>';
     });
+    const pct=Math.round(doneU/its.length*100);
+    unitsHtml+='<div class="card"><div class="unit-row"><h2 style="border:0;margin:0;padding:0">'+u+'</h2>'+
+      '<span class="ucount">'+doneU+'/'+its.length+'</span></div>'+
+      '<div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div>'+rows+'</div>';
+  });
+  const opct=Math.round(totalDone/total*100);
+  const headHint = recList.length
+    ? (pending.length ? '尚未達標：'+pending.join('、') : '全部達標 🎉')
+    : '老師還沒填寫紀錄。下面是你這次實習的 18 項學習目標與目標等級（P1 模擬 → P5 多次獨立），完成後會逐項變綠。';
+  const head='<div class="card"><h2>'+display+'　整體達成</h2><div class="big">'+totalDone+' / '+total+'</div>'+
+    '<div class="pbar big"><div class="pfill" style="width:'+opct+'%"></div></div>'+
+    '<div class="hint" style="margin-top:10px">'+headHint+'</div></div>';
+  const isTeacher = (opts.viewer === 'teacher');
+  let recs='';
+  if(recList.length){
+    recList.slice().reverse().forEach(function(rec){
+      const done=ITEMS.filter(function(it){return rec.items[it.id]>0;}).map(function(it){return it.name.replace(' ⚠️','')+'(P'+rec.items[it.id]+')';}).join('、')||'—';
+      recs+='<div class="rec"><div class="meta">'+fmtDate(rec.date)+'・'+rec.slot+'・'+rec.teacher+' 老師'+(rec.stations?'・'+rec.stations:'')+'</div>'+
+        '<div>'+done+'</div>'+
+        (rec.good?'<div><b>良好</b>：'+esc(rec.good)+'</div>':'')+
+        (rec.improve?'<div><b>待加強</b>：'+esc(rec.improve)+'</div>':'')+
+        ((isTeacher&&rec.event)?'<div><b>事件</b>：'+esc(rec.event)+'</div>':'')+
+        ((isTeacher&&rec.handover)?'<div><b>交班</b>：'+esc(rec.handover)+'</div>':'')+'</div>';
+    });
+  } else {
+    recs='<div class="hint">尚無紀錄，老師填寫後會出現在這裡。</div>';
   }
-  const selfTotal=($('selfTotal')||{}).textContent||'';
-  const supTotal=($('supTotal')||{}).textContent||'';
-  const fb=(document.querySelector('.fb-area')||{}).value||'';
-  const rm=(document.querySelector('.remark-area')||{}).value||'';
-  const sigImg=(id)=>{ const d=sigData(id); return d?`<img src="${d}">`:''; };
-  const sigD=(id)=>{ const has=sigData(id); if(!has) return ''; return '日期：'+(sigDates[id]||todayStr()); };
-  const ev=(formPerson.role==='HN')?'督導':'護理長';
-  const title=(form?form.title:roleLabel(formPerson.role)+'考核表');
-  $('printDoc').innerHTML=`<div class="pd-wrap">
-    <div class="pd-head"><div class="pd-org">嘉義基督教醫院　急診　護理部</div><div class="pd-title">${title}</div></div>
-    <div class="pd-meta"><span>姓名：${formPerson.name}</span><span>職類：${roleLabel(formPerson.role)}</span><span>單位：急診</span><span>會談日期：${dateTxt}</span></div>
-    <table class="pd-table"><thead><tr><th style="width:22px">類別</th><th>考核項目</th><th style="width:34px">配分</th><th style="width:40px">自評</th><th style="width:46px">主管評核</th></tr></thead><tbody>${rows}</tbody></table>
-    <div class="pd-tot"><span>人員自評分數：${selfTotal}</span><span>主管評核分數：${supTotal}</span><span>區域：＿＿＿</span></div>
-    <div class="pd-block"><div class="l">雙向回饋</div><div class="b">${fb.replace(/</g,'&lt;')}</div></div>
-    <div class="pd-block"><div class="l">加分／其他事項備註</div><div class="b">${rm.replace(/</g,'&lt;')}</div></div>
-    <div class="pd-sign">
-      <div class="col"><div class="box">${sigImg('sig1')}</div><div class="lab">受考人簽名　${sigD('sig1')}</div></div>
-      <div class="col"><div class="box">${sigImg('sig2')}</div><div class="lab">單位主管（${ev}）　${sigD('sig2')}</div></div>
-      <div class="col"><div class="box">${sigImg('sig3')}</div><div class="lab">單位上一級主管（${formPerson.role==='HN'?'副主任':'督導'}）　${sigD('sig3')}</div></div>
-    </div>
-  </div>`;
-}
-$('formPrint').onclick=()=>{ buildOfficialPrint(); setTimeout(()=>window.print(),50); };
-$('formSave').onclick=()=>saveForm();
-$('formSend').onclick=()=>saveForm('sent');
-$('formOverlay').onclick=e=>{ /* 點背景不關閉，避免誤觸跳出 */ };
-function closeForm(){
-  if(recog&&recOn){ try{recog.stop();}catch(e){} }
-  if(formDirty && !confirm('尚有未儲存的內容，確定關閉？\n未按「儲存」的內容不會保留。')) return;
-  $('formOverlay').classList.remove('show'); formDirty=false;
-}
-/* 常用片語（可自行增減）：點一下塞進評語 */
-const PHRASES=[
-  '本年度整體表現優異，請繼續保持。',
-  '工作態度積極主動，值得肯定。',
-  '臨床照護品質穩定，病人安全意識佳。',
-  '團隊合作良好，樂於協助同仁。',
-  '主動參與品質改善與教學活動。',
-  '配合單位排班與臨時交辦事務。',
-  '建議加強臨床技術之熟練度。',
-  '鼓勵持續進修，朝進階職級發展。',
-  '建議提升時間管理與工作效率。',
-  '鼓勵參與學術寫作或專案發表。',
-];
-function renderPhrases(){
-  const row=$('phraseRow'); if(!row) return; row.innerHTML='';
-  if(!(adminLevel==='admin'||adminLevel==='super')) return;   // 常用片語只給護理長/督導
-  PHRASES.forEach(t=>{ const c=document.createElement('button'); c.type='button'; c.className='phrase-chip';
-    c.textContent=t; c.onclick=()=>{ const fb=document.querySelector('.fb-area');
-      fb.value += (fb.value && !fb.value.endsWith('\n')?'\n':'')+t; formDirty=true; }; row.appendChild(c); });
-}
-/* 語音辨識（雙向回饋），Chrome/Edge 支援 zh-TW；不支援則隱藏按鈕 */
-function initMic(){
-  const btn=$('micBtn'); if(!btn) return;
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ btn.style.display='none'; return; }
-  recOn=false;
-  btn.onclick=()=>{
-    if(recOn){ try{recog.stop();}catch(e){} return; }
-    const fb=document.querySelector('.fb-area'); let base=fb.value;
-    recog=new SR(); recog.lang='zh-TW'; recog.interimResults=true; recog.continuous=true;
-    recog.onresult=ev=>{ let fin='',intr='';
-      for(let i=ev.resultIndex;i<ev.results.length;i++){ const t=ev.results[i][0].transcript;
-        if(ev.results[i].isFinal) fin+=t; else intr+=t; }
-      if(fin){ base+=fin; fb.value=base; formDirty=true; } else { fb.value=base+intr; }
-    };
-    const stop=()=>{ recOn=false; btn.classList.remove('rec'); btn.textContent='🎤 語音輸入'; };
-    recog.onend=stop; recog.onerror=stop;
-    try{ recog.start(); recOn=true; btn.classList.add('rec'); btn.textContent='● 停止錄音'; }
-    catch(e){ toast('語音啟動失敗'); }
-  };
+  box.innerHTML=head+unitsHtml+'<div class="card"><h2>歷次紀錄（'+recList.length+' 筆）</h2>'+recs+'</div>';
 }
 
-let toastTimer=null;
-function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200); }
+/* ===== 管理面板（admin）===== */
+let ADMIN_ROSTER=[];
+function doneCount(att){ let n=0; ITEMS.forEach(function(it){ if((att[it.id]||0)>=targetOf(it.type)) n++; }); return n; }
+async function loadAdmin(){
+  const box=document.getElementById('admin-result'); box.innerHTML='<div class="card">載入中…</div>';
+  try{ const r=await api({action:'getAllProgress'});
+    if(!r.ok){ box.innerHTML='<div class="card">載入失敗：'+(r.error||'')+'</div>'; return; }
+    ADMIN_ROSTER=r.roster||[]; renderAdmin();
+  }catch(e){ box.innerHTML='<div class="card">連線失敗</div>'; }
+}
+function renderAdmin(){
+  const box=document.getElementById('admin-result');
+  const roster=ADMIN_ROSTER, total=ITEMS.length, N=roster.length;
+  if(!N){ box.innerHTML='<div class="card">名單中沒有學員。</div>'; return; }
+  let started=0, completed=0, sumDone=0;
+  roster.forEach(function(s){ s._done=doneCount(s.attainment); sumDone+=s._done; if(s.recordCount>0) started++; if(s._done===total) completed++; });
+  const avg=(sumDone/N).toFixed(1);
+  const stat='<div class="card"><h2>概況</h2><div class="stat">'+
+    '<div class="box"><div class="n">'+N+'</div><div class="l">學員數</div></div>'+
+    '<div class="box"><div class="n">'+started+'</div><div class="l">已開始</div></div>'+
+    '<div class="box"><div class="n">'+completed+'</div><div class="l">全達標</div></div>'+
+    '<div class="box"><div class="n">'+avg+'</div><div class="l">平均達成/'+total+'</div></div></div></div>';
+  let irows='';
+  ITEMS.forEach(function(it){
+    let c=0; roster.forEach(function(s){ if((s.attainment[it.id]||0)>=targetOf(it.type)) c++; });
+    const pct=Math.round(c/N*100);
+    irows+='<div class="irate"><div>'+it.name+'<div class="pbar" style="margin-top:4px"><div class="pfill" style="width:'+pct+'%"></div></div></div><div class="ipct">'+pct+'%</div></div>';
+  });
+  const rate='<div class="card"><h2>各項目達標率（全梯）</h2>'+irows+'</div>';
+  const sorted=roster.slice().sort(function(a,b){ return a._done-b._done || String(a.name).localeCompare(String(b.name)); });
+  let arows='';
+  sorted.forEach(function(s){
+    const pct=Math.round(s._done/total*100);
+    arows+='<div class="arow" onclick="adminViewStudent(\''+s.id+'\')">'+
+      '<div class="nm">'+s.name+' <small>'+s.id+(s.cohort?'・'+s.cohort:'')+(s.recordCount===0?'・未開始':'')+'</small></div>'+
+      '<div class="pg"><b>'+s._done+'/'+total+'</b><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div></div></div>';
+  });
+  const tbl='<div class="card"><h2>學員進度（點一列看細節；落後者排前面）</h2>'+arows+'</div>';
+  box.innerHTML=stat+rate+tbl;
+}
+function adminViewStudent(id){
+  document.getElementById('q-student').value=id;
+  switchTab('query');
+  loadStudent();
+}
 
-$('userSelect').onchange=async e=>{ currentUser=ROSTER.find(p=>p.name===e.target.value)||null;
-  myslot=null; if(currentUser) await refreshMine(); render(); };
-$('adminBtn').onclick=()=>{
-  if(adminMode){ // 結束檢視
-    adminMode=false; adminBookings=null; adminPass=''; adminLevel='';
-    $('cfgBox').style.display='none'; $('cfgBox').innerHTML='';
-    $('formsBox').style.display='none'; $('formsBox').innerHTML='';
-    $('adminBtn').classList.remove('on'); $('adminBtn').textContent='管理檢視'; render(); return;
-  }
-  if(LIVE){ const pw=prompt('請輸入密碼\n護理長 / 督導 / 小組長以上'); if(pw) fetchAdmin(pw,false); }
-  else{ adminMode=true; $('adminBtn').classList.add('on'); $('adminBtn').textContent='結束檢視'; render(); }
-};
-
-// 啟動：有設 API_URL 就連後端＋每5秒輪詢；否則顯示示範資料
-if(LIVE){ loadFromServer(); setInterval(pollBookings,10000); }
-else{ loadDemo(); buildUserSelect(); render(); }
+/* ===== 啟動 ===== */
+(function(){
+  const role=sessionStorage.getItem('emtp_role'); const acc=sessionStorage.getItem('emtp_acc');
+  if(acc){ document.getElementById('lg-acc').value=acc; }
+  if(role==='student'){ setRole('student'); }
+  if(role==='teacher' && sessionStorage.getItem('emtp_teacher')){ enterAppTeacher(sessionStorage.getItem('emtp_teacher'), sessionStorage.getItem('emtp_isadmin')==='1'?'admin':'teacher'); }
+  else if(role==='student' && sessionStorage.getItem('emtp_sid')){ enterAppStudent(sessionStorage.getItem('emtp_sname'), sessionStorage.getItem('emtp_sid')); }
+})();
 </script>
 </body>
 </html>
